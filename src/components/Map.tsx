@@ -21,10 +21,28 @@ interface MapProps {
   onBoundsChange?: (bounds: MapBounds, zoom: number) => void;
 }
 
-interface MarkerData {
-  marker: mapboxgl.Marker;
-  dot: HTMLDivElement;
-  siteId: number;
+// Convert sites to GeoJSON for Mapbox clustering
+function sitesToGeoJSON(sites: Site[]): GeoJSON.FeatureCollection {
+  return {
+    type: 'FeatureCollection',
+    features: sites
+      .filter((site) => site.longitude && site.latitude)
+      .map((site) => ({
+        type: 'Feature' as const,
+        properties: {
+          id: site.site_id,
+          name: site.site_name,
+          organization: site.organization_name,
+          city: site.city,
+          address: site.street_address,
+          types: site.gambling_types_inferred,
+        },
+        geometry: {
+          type: 'Point' as const,
+          coordinates: [site.longitude!, site.latitude!],
+        },
+      })),
+  };
 }
 
 function MapComponent({
@@ -37,12 +55,11 @@ function MapComponent({
 }: MapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const markersData = useRef<MarkerData[]>([]);
   const [mapLoaded, setMapLoaded] = useState(false);
   const onSiteClickRef = useRef(onSiteClick);
-  const selectedSiteIdRef = useRef(selectedSiteId);
   const onBoundsChangeRef = useRef(onBoundsChange);
-  const isFlying = useRef(false); // Prevent bounds updates during flyTo
+  const sitesRef = useRef(sites);
+  const isFlying = useRef(false);
 
   // Keep refs updated
   useEffect(() => {
@@ -50,12 +67,12 @@ function MapComponent({
   }, [onSiteClick]);
 
   useEffect(() => {
-    selectedSiteIdRef.current = selectedSiteId;
-  }, [selectedSiteId]);
-
-  useEffect(() => {
     onBoundsChangeRef.current = onBoundsChange;
   }, [onBoundsChange]);
+
+  useEffect(() => {
+    sitesRef.current = sites;
+  }, [sites]);
 
   // Initialize map
   useEffect(() => {
@@ -63,7 +80,7 @@ function MapComponent({
 
     const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
     if (!token) {
-      console.warn('Mapbox token not configured. Map will not display.');
+      console.warn('Mapbox token not configured.');
       return;
     }
 
@@ -78,12 +95,12 @@ function MapComponent({
 
     map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-    // Helper to emit current bounds and zoom
+    // Helper to emit bounds
     const emitBounds = () => {
-      if (!map.current || isFlying.current) return; // Skip during flyTo
+      if (!map.current || isFlying.current) return;
       const bounds = map.current.getBounds();
       if (!bounds) return;
-      const zoom = map.current.getZoom();
+      const currentZoom = map.current.getZoom();
       onBoundsChangeRef.current?.(
         {
           north: bounds.getNorth(),
@@ -91,17 +108,136 @@ function MapComponent({
           east: bounds.getEast(),
           west: bounds.getWest(),
         },
-        zoom
+        currentZoom
       );
     };
 
     map.current.on('load', () => {
+      if (!map.current) return;
+
+      // Add clustered source
+      map.current.addSource('sites', {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] },
+        cluster: true,
+        clusterMaxZoom: 14,
+        clusterRadius: 50,
+      });
+
+      // Cluster circles
+      map.current.addLayer({
+        id: 'clusters',
+        type: 'circle',
+        source: 'sites',
+        filter: ['has', 'point_count'],
+        paint: {
+          'circle-color': [
+            'step',
+            ['get', 'point_count'],
+            '#3b82f6', // blue for small clusters
+            10,
+            '#2563eb', // darker blue for medium
+            50,
+            '#1d4ed8', // even darker for large
+          ],
+          'circle-radius': [
+            'step',
+            ['get', 'point_count'],
+            20, // small clusters
+            10,
+            25, // medium clusters
+            50,
+            35, // large clusters
+          ],
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#fff',
+        },
+      });
+
+      // Cluster count labels
+      map.current.addLayer({
+        id: 'cluster-count',
+        type: 'symbol',
+        source: 'sites',
+        filter: ['has', 'point_count'],
+        layout: {
+          'text-field': '{point_count_abbreviated}',
+          'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+          'text-size': 12,
+        },
+        paint: {
+          'text-color': '#ffffff',
+        },
+      });
+
+      // Individual points (unclustered)
+      map.current.addLayer({
+        id: 'unclustered-point',
+        type: 'circle',
+        source: 'sites',
+        filter: ['!', ['has', 'point_count']],
+        paint: {
+          'circle-color': '#3b82f6',
+          'circle-radius': 8,
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#fff',
+        },
+      });
+
+      // Click on cluster to zoom in
+      map.current.on('click', 'clusters', (e) => {
+        if (!map.current) return;
+        const features = map.current.queryRenderedFeatures(e.point, {
+          layers: ['clusters'],
+        });
+        if (!features.length) return;
+
+        const clusterId = features[0].properties?.cluster_id;
+        const source = map.current.getSource('sites') as mapboxgl.GeoJSONSource;
+
+        source.getClusterExpansionZoom(clusterId, (err, expansionZoom) => {
+          if (err || !map.current || expansionZoom == null) return;
+          const geometry = features[0].geometry;
+          if (geometry.type === 'Point') {
+            map.current.easeTo({
+              center: geometry.coordinates as [number, number],
+              zoom: expansionZoom,
+            });
+          }
+        });
+      });
+
+      // Click on individual point
+      map.current.on('click', 'unclustered-point', (e) => {
+        if (!e.features?.length) return;
+        const feature = e.features[0];
+        const siteId = feature.properties?.id;
+
+        // Find the full site data
+        const site = sitesRef.current.find((s) => s.site_id === siteId);
+        if (site) {
+          onSiteClickRef.current?.(site);
+        }
+      });
+
+      // Change cursor on hover
+      map.current.on('mouseenter', 'clusters', () => {
+        if (map.current) map.current.getCanvas().style.cursor = 'pointer';
+      });
+      map.current.on('mouseleave', 'clusters', () => {
+        if (map.current) map.current.getCanvas().style.cursor = '';
+      });
+      map.current.on('mouseenter', 'unclustered-point', () => {
+        if (map.current) map.current.getCanvas().style.cursor = 'pointer';
+      });
+      map.current.on('mouseleave', 'unclustered-point', () => {
+        if (map.current) map.current.getCanvas().style.cursor = '';
+      });
+
       setMapLoaded(true);
-      // Emit initial bounds
       emitBounds();
     });
 
-    // Emit bounds when map stops moving
     map.current.on('moveend', emitBounds);
 
     return () => {
@@ -110,86 +246,42 @@ function MapComponent({
     };
   }, []);
 
-  // Add/update markers when sites change (but NOT when selectedSiteId changes)
+  // Update GeoJSON data when sites change
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
 
-    // Clear existing markers
-    markersData.current.forEach((m) => m.marker.remove());
-    markersData.current = [];
-
-    // Add new markers
-    sites.forEach((site) => {
-      if (!site.longitude || !site.latitude) return;
-
-      // Outer container - Mapbox transforms this, so we don't animate it
-      const el = document.createElement('div');
-      el.className = 'site-marker';
-      el.dataset.siteId = site.site_id.toString();
-      el.style.cssText = `
-        width: 24px;
-        height: 24px;
-        cursor: pointer;
-      `;
-
-      // Inner dot - we animate this instead
-      const dot = document.createElement('div');
-      dot.style.cssText = `
-        width: 100%;
-        height: 100%;
-        background-color: #3b82f6;
-        border: 2px solid white;
-        border-radius: 50%;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-        transition: transform 0.15s ease-out, box-shadow 0.15s ease-out, background-color 0.15s ease-out;
-      `;
-      el.appendChild(dot);
-
-      // Hover handlers check selection state via ref
-      el.addEventListener('mouseenter', () => {
-        dot.style.transform = 'scale(1.3)';
-        dot.style.boxShadow = '0 3px 8px rgba(0,0,0,0.4)';
-      });
-      el.addEventListener('mouseleave', () => {
-        // Only reset scale if not selected
-        if (selectedSiteIdRef.current !== site.site_id) {
-          dot.style.transform = 'scale(1)';
-        }
-        dot.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
-      });
-
-      el.addEventListener('click', () => {
-        onSiteClickRef.current?.(site);
-      });
-
-      const marker = new mapboxgl.Marker(el)
-        .setLngLat([site.longitude, site.latitude])
-        .addTo(map.current!);
-
-      markersData.current.push({ marker, dot, siteId: site.site_id });
-    });
+    const source = map.current.getSource('sites') as mapboxgl.GeoJSONSource;
+    if (source) {
+      source.setData(sitesToGeoJSON(sites));
+    }
   }, [sites, mapLoaded]);
 
-  // Update marker colors when selection changes (without recreating markers)
+  // Highlight selected point
   useEffect(() => {
-    markersData.current.forEach(({ dot, siteId }) => {
-      if (siteId === selectedSiteId) {
-        dot.style.backgroundColor = '#ef4444';
-        dot.style.transform = 'scale(1.3)';
-      } else {
-        dot.style.backgroundColor = '#3b82f6';
-        dot.style.transform = 'scale(1)';
-      }
-    });
-  }, [selectedSiteId]);
+    if (!map.current || !mapLoaded) return;
 
-  // Pan to selected site
+    // Update paint property for selected state
+    map.current.setPaintProperty('unclustered-point', 'circle-color', [
+      'case',
+      ['==', ['get', 'id'], selectedSiteId || -1],
+      '#ef4444', // red for selected
+      '#3b82f6', // blue for others
+    ]);
+
+    map.current.setPaintProperty('unclustered-point', 'circle-radius', [
+      'case',
+      ['==', ['get', 'id'], selectedSiteId || -1],
+      12, // larger for selected
+      8, // normal for others
+    ]);
+  }, [selectedSiteId, mapLoaded]);
+
+  // Fly to selected site
   useEffect(() => {
     if (!map.current || !selectedSiteId) return;
 
     const site = sites.find((s) => s.site_id === selectedSiteId);
     if (site?.longitude && site?.latitude) {
-      // Set flying flag to prevent bounds updates during animation
       isFlying.current = true;
 
       map.current.flyTo({
@@ -198,14 +290,12 @@ function MapComponent({
         duration: 1000,
       });
 
-      // After animation completes, update URL with new position
       map.current.once('moveend', () => {
         isFlying.current = false;
-        // Emit final bounds so URL gets updated with zoomed-in position
         if (map.current) {
           const bounds = map.current.getBounds();
           if (bounds) {
-            const zoom = map.current.getZoom();
+            const currentZoom = map.current.getZoom();
             onBoundsChangeRef.current?.(
               {
                 north: bounds.getNorth(),
@@ -213,7 +303,7 @@ function MapComponent({
                 east: bounds.getEast(),
                 west: bounds.getWest(),
               },
-              zoom
+              currentZoom
             );
           }
         }
@@ -221,7 +311,7 @@ function MapComponent({
     }
   }, [selectedSiteId, sites]);
 
-  // Show placeholder if no Mapbox token
+  // Placeholder if no token
   if (!process.env.NEXT_PUBLIC_MAPBOX_TOKEN) {
     return (
       <div className="w-full h-full bg-gray-100 flex items-center justify-center">
@@ -237,6 +327,5 @@ function MapComponent({
   return <div ref={mapContainer} className="w-full h-full" />;
 }
 
-// Memoize to prevent unnecessary re-renders
 const Map = memo(MapComponent);
 export default Map;
