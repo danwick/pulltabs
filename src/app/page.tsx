@@ -1,65 +1,249 @@
-import Image from "next/image";
+'use client';
 
+import { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { Site } from '@/types/site';
+import Map, { MapBounds } from '@/components/Map';
+import SiteList from '@/components/SiteList';
+import SearchFilters, { FilterState } from '@/components/SearchFilters';
+import { Menu, X } from 'lucide-react';
+
+// Wrap the main content in a component that can use searchParams
+function HomeContent() {
+  const searchParams = useSearchParams();
+
+  const [sites, setSites] = useState<Site[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedSiteId, setSelectedSiteId] = useState<number | null>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
+  const [filters, setFilters] = useState<FilterState>({
+    search: '',
+    city: '',
+    types: [],
+    useLocation: false,
+    distance: 25,
+  });
+
+  // Debounce timer ref for bounds changes
+  const boundsTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Parse initial map state from URL
+  const initialMapState = useMemo(() => {
+    const lat = searchParams.get('lat');
+    const lng = searchParams.get('lng');
+    const z = searchParams.get('z');
+
+    if (lat && lng) {
+      return {
+        center: [parseFloat(lng), parseFloat(lat)] as [number, number],
+        zoom: z ? parseFloat(z) : 12,
+      };
+    }
+    return null;
+  }, [searchParams]);
+
+  // Fetch sites based on filters and map bounds
+  const fetchSites = useCallback(async () => {
+    // Don't fetch until we have bounds
+    if (!mapBounds) return;
+
+    setLoading(true);
+
+    const params = new URLSearchParams();
+
+    if (filters.search) params.set('search', filters.search);
+    if (filters.city) params.set('city', filters.city);
+    if (filters.types.length > 0) params.set('types', filters.types.join(','));
+
+    if (filters.useLocation && userLocation) {
+      params.set('lat', userLocation.lat.toString());
+      params.set('lng', userLocation.lng.toString());
+      params.set('distance', filters.distance.toString());
+    } else {
+      // Use viewport bounds for dynamic loading
+      params.set('north', mapBounds.north.toString());
+      params.set('south', mapBounds.south.toString());
+      params.set('east', mapBounds.east.toString());
+      params.set('west', mapBounds.west.toString());
+    }
+
+    try {
+      const res = await fetch(`/api/sites?${params}`);
+      const data = await res.json();
+      setSites(data.sites || []);
+    } catch (error) {
+      console.error('Error fetching sites:', error);
+      setSites([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [filters, userLocation, mapBounds]);
+
+  // Initial load and filter changes
+  useEffect(() => {
+    fetchSites();
+  }, [fetchSites]);
+
+  // Request user location - memoized
+  const requestLocation = useCallback(() => {
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+      },
+      (error) => {
+        console.error('Error getting location:', error);
+        alert('Unable to get your location. Please check your browser settings.');
+      }
+    );
+  }, []);
+
+  const handleSearch = useCallback((newFilters: FilterState) => {
+    setFilters(newFilters);
+    if (newFilters.useLocation) {
+      requestLocation();
+    }
+  }, [requestLocation]);
+
+  // Handle map bounds changes with debouncing
+  const handleBoundsChange = useCallback((bounds: MapBounds, zoom?: number) => {
+    // Clear any pending timer
+    if (boundsTimerRef.current) {
+      clearTimeout(boundsTimerRef.current);
+    }
+
+    // Debounce the bounds update to avoid excessive API calls while panning
+    boundsTimerRef.current = setTimeout(() => {
+      setMapBounds(bounds);
+
+      // Update URL with map position (for back button support)
+      const centerLat = (bounds.north + bounds.south) / 2;
+      const centerLng = (bounds.east + bounds.west) / 2;
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('lat', centerLat.toFixed(5));
+      params.set('lng', centerLng.toFixed(5));
+      if (zoom) params.set('z', zoom.toFixed(1));
+
+      // Replace URL without navigation (shallow update)
+      window.history.replaceState(null, '', `?${params.toString()}`);
+    }, 300);
+  }, [searchParams]);
+
+  // Memoize site click handler to prevent recreation on every render
+  const handleSiteClick = useCallback((site: Site) => {
+    setSelectedSiteId(site.site_id);
+    // On mobile, show the sidebar when a site is selected
+    if (window.innerWidth < 768) {
+      setShowSidebar(true);
+    }
+  }, []);
+
+  // Memoize map center to prevent unnecessary recalculations
+  const mapCenter = useMemo<[number, number]>(() => {
+    // Priority: URL params > user location > default
+    if (initialMapState) {
+      return initialMapState.center;
+    }
+    if (userLocation) {
+      return [userLocation.lng, userLocation.lat];
+    }
+    return [-94.6859, 46.7296]; // Minnesota center
+  }, [initialMapState, userLocation]);
+
+  const mapZoom = useMemo(() => {
+    if (initialMapState) {
+      return initialMapState.zoom;
+    }
+    if (userLocation) {
+      return 10;
+    }
+    return 6;
+  }, [initialMapState, userLocation]);
+
+  return (
+    <div className="h-screen flex flex-col">
+      {/* Header */}
+      <header className="bg-white border-b px-4 py-3 flex items-center justify-between z-10">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowSidebar(!showSidebar)}
+            className="p-2 hover:bg-gray-100 rounded-lg md:hidden"
+          >
+            {showSidebar ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+          <h1 className="text-xl font-bold text-gray-900">MN Pull-Tab Finder</h1>
+        </div>
+        <div className="text-sm text-gray-500">
+          {sites.length} locations
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Sidebar */}
+        <div
+          className={`absolute md:relative z-10 h-full bg-white transition-transform duration-300 ${
+            showSidebar ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+          } w-full md:w-96 flex flex-col border-r`}
+        >
+          <SearchFilters onSearch={handleSearch} onLocationRequest={requestLocation} />
+          <div className="flex-1 overflow-y-auto">
+            <SiteList
+              sites={sites}
+              selectedSiteId={selectedSiteId}
+              onSiteSelect={handleSiteClick}
+              loading={loading}
+            />
+          </div>
+        </div>
+
+        {/* Map */}
+        <div className="flex-1 relative">
+          <Map
+            sites={sites}
+            center={mapCenter}
+            zoom={mapZoom}
+            selectedSiteId={selectedSiteId}
+            onSiteClick={handleSiteClick}
+            onBoundsChange={handleBoundsChange}
+          />
+
+          {/* Mobile toggle button */}
+          <button
+            onClick={() => setShowSidebar(!showSidebar)}
+            className="absolute bottom-4 left-4 md:hidden bg-white px-4 py-2 rounded-full shadow-lg font-medium text-sm"
+          >
+            {showSidebar ? 'Show Map' : `View List (${sites.length})`}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Loading fallback for Suspense
+function HomeLoading() {
+  return (
+    <div className="h-screen flex items-center justify-center">
+      <div className="text-gray-500">Loading map...</div>
+    </div>
+  );
+}
+
+// Export with Suspense boundary for useSearchParams
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <Suspense fallback={<HomeLoading />}>
+      <HomeContent />
+    </Suspense>
   );
 }
