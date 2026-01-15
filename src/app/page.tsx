@@ -28,6 +28,7 @@ function HomeContent() {
 
   // Debounce timer ref for bounds changes
   const boundsTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const hasLoadedOnce = useRef(false); // Track if we've done initial load
 
   // Parse initial map state from URL
   const initialMapState = useMemo(() => {
@@ -49,7 +50,10 @@ function HomeContent() {
     // Don't fetch until we have bounds
     if (!mapBounds) return;
 
-    setLoading(true);
+    // Only show skeleton on initial load, not on refreshes
+    if (!hasLoadedOnce.current) {
+      setLoading(true);
+    }
 
     const params = new URLSearchParams();
 
@@ -73,6 +77,7 @@ function HomeContent() {
       const res = await fetch(`/api/sites?${params}`);
       const data = await res.json();
       setSites(data.sites || []);
+      hasLoadedOnce.current = true;
     } catch (error) {
       console.error('Error fetching sites:', error);
       setSites([]);
@@ -128,7 +133,7 @@ function HomeContent() {
       // Update URL with map position (for back button support)
       const centerLat = (bounds.north + bounds.south) / 2;
       const centerLng = (bounds.east + bounds.west) / 2;
-      const params = new URLSearchParams(searchParams.toString());
+      const params = new URLSearchParams();
       params.set('lat', centerLat.toFixed(5));
       params.set('lng', centerLng.toFixed(5));
       if (zoom) params.set('z', zoom.toFixed(1));
@@ -136,7 +141,7 @@ function HomeContent() {
       // Replace URL without navigation (shallow update)
       window.history.replaceState(null, '', `?${params.toString()}`);
     }, 300);
-  }, [searchParams]);
+  }, []); // No dependencies - doesn't need to recreate
 
   // Memoize site click handler to prevent recreation on every render
   const handleSiteClick = useCallback((site: Site) => {
