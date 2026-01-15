@@ -60,6 +60,7 @@ function MapComponent({
   const onBoundsChangeRef = useRef(onBoundsChange);
   const sitesRef = useRef(sites);
   const isFlying = useRef(false);
+  const lastFlyToSiteId = useRef<number | null>(null); // Track which site we've flown to
 
   // Keep refs updated
   useEffect(() => {
@@ -276,12 +277,19 @@ function MapComponent({
     ]);
   }, [selectedSiteId, mapLoaded]);
 
-  // Fly to selected site
+  // Fly to selected site (only when selection changes, not on every sites update)
   useEffect(() => {
-    if (!map.current || !selectedSiteId) return;
+    if (!map.current || !selectedSiteId) {
+      lastFlyToSiteId.current = null;
+      return;
+    }
 
-    const site = sites.find((s) => s.site_id === selectedSiteId);
+    // Don't fly again if we already flew to this site
+    if (lastFlyToSiteId.current === selectedSiteId) return;
+
+    const site = sitesRef.current.find((s) => s.site_id === selectedSiteId);
     if (site?.longitude && site?.latitude) {
+      lastFlyToSiteId.current = selectedSiteId;
       isFlying.current = true;
 
       map.current.flyTo({
@@ -309,7 +317,7 @@ function MapComponent({
         }
       });
     }
-  }, [selectedSiteId, sites]);
+  }, [selectedSiteId]); // Only depend on selectedSiteId, use ref for sites
 
   // Placeholder if no token
   if (!process.env.NEXT_PUBLIC_MAPBOX_TOKEN) {
