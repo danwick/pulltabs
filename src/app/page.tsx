@@ -211,13 +211,6 @@ function HomeContent() {
         </div>
       </header>
 
-      {/* Site Detail Panel - slides down from top when site selected */}
-      {selectedSite && (
-        <div className="bg-white border-b shadow-lg z-30 animate-slideDown">
-          <SiteDetailPanel site={selectedSite} onClose={handleClosePanel} />
-        </div>
-      )}
-
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden relative">
         {/* Sidebar */}
@@ -227,6 +220,14 @@ function HomeContent() {
           } w-full md:w-96 flex flex-col border-r`}
         >
           <SearchFilters onSearch={handleSearch} onLocationRequest={requestLocation} />
+
+          {/* Site Detail Panel - shows in sidebar when site selected */}
+          {selectedSite && (
+            <div className="border-b shadow-sm">
+              <SiteDetailPanel site={selectedSite} onClose={handleClosePanel} />
+            </div>
+          )}
+
           <div className="flex-1 overflow-y-auto">
             <SiteList
               sites={sites}
