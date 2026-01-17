@@ -22,6 +22,10 @@ export interface Site {
   photos?: string[];
   listing_status: 'unclaimed' | 'standard' | 'premium';
   is_active: boolean;
+  // New fields from Jay/Tim feedback
+  tab_type?: TabType | null;
+  pull_tab_prices?: PullTabPrice[];
+  etab_system?: EtabSystem | null;
 }
 
 export interface SiteHours {
@@ -48,6 +52,10 @@ export interface SiteFilters {
     east: number;
     west: number;
   };
+  // New filters from Jay/Tim feedback
+  tab_type?: TabType;
+  pull_tab_prices?: PullTabPrice[];
+  etab_system?: EtabSystem;
 }
 
 export type GamblingType =
@@ -67,4 +75,24 @@ export const GAMBLING_TYPE_LABELS: Record<GamblingType, string> = {
   tipboards: 'Tipboards',
   paddlewheels: 'Paddlewheels',
   raffles: 'Raffles',
+};
+
+// New types from Jay/Tim feedback
+export type TabType = 'booth' | 'behind_bar' | 'machine';
+
+export const TAB_TYPE_LABELS: Record<TabType, string> = {
+  booth: 'Booth',
+  behind_bar: 'Behind Bar',
+  machine: 'Machine',
+};
+
+export type PullTabPrice = 1 | 2 | 3 | 4 | 5;
+
+export const PULL_TAB_PRICES: PullTabPrice[] = [1, 2, 3, 4, 5];
+
+export type EtabSystem = 'pilot' | '3_diamonds';
+
+export const ETAB_SYSTEM_LABELS: Record<EtabSystem, string> = {
+  pilot: 'Pilot',
+  '3_diamonds': '3 Diamonds',
 };

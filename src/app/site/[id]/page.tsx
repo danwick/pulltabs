@@ -1,7 +1,8 @@
 import { getSiteById, getSites } from '@/lib/sites';
-import { MapPin, Phone, Globe, DollarSign, Building, User, FileText } from 'lucide-react';
+import { MapPin, Clock, Store, DollarSign, Monitor, Camera, Navigation } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import BackButton from '@/components/BackButton';
+import { TAB_TYPE_LABELS, ETAB_SYSTEM_LABELS, TabType, EtabSystem } from '@/types/site';
 
 interface SitePageProps {
   params: Promise<{ id: string }>;
@@ -28,192 +29,156 @@ export default async function SitePage({ params }: SitePageProps) {
     notFound();
   }
 
-  const gamblingTypes = site.gambling_types_inferred.split(', ');
-
-  const formatCurrency = (amount: number | null) => {
-    if (!amount) return 'N/A';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+  // Check if site has operator-provided details
+  const hasPullTabDetails = site.tab_type || (site.pull_tab_prices && site.pull_tab_prices.length > 0);
+  const hasEtabDetails = site.etab_system;
+  const hasPhotos = site.photos && site.photos.length > 0;
+  const hasHours = site.hours && Object.values(site.hours).some(day => day !== null);
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-4">
+        <div className="max-w-2xl mx-auto px-4 py-4">
           <BackButton />
           <h1 className="text-2xl font-bold text-gray-900">{site.site_name}</h1>
-          <p className="text-gray-600">{site.organization_name}</p>
+          <p className="text-gray-500 text-sm">{site.organization_name}</p>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-6">
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Location Card */}
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-blue-500" />
-              Location
-            </h2>
-            <address className="not-italic text-gray-700 mb-4">
-              {site.street_address}
-              <br />
-              {site.city}, {site.state} {site.zip_code}
-            </address>
-
+      <main className="max-w-2xl mx-auto px-4 py-6 space-y-4">
+        {/* Address & Directions */}
+        <div className="bg-white rounded-lg shadow-sm border p-4">
+          <div className="flex items-start justify-between">
+            <div className="flex items-start gap-3">
+              <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
+              <div>
+                <p className="text-gray-900">{site.street_address}</p>
+                <p className="text-gray-600">{site.city}, {site.state} {site.zip_code}</p>
+              </div>
+            </div>
             {site.latitude && site.longitude && (
               <a
                 href={`https://www.google.com/maps/dir/?api=1&destination=${site.latitude},${site.longitude}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 transition-colors"
               >
-                <MapPin className="w-4 h-4" />
-                Get Directions
+                <Navigation className="w-4 h-4" />
+                Directions
               </a>
             )}
           </div>
+        </div>
 
-          {/* Contact Card */}
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Phone className="w-5 h-5 text-blue-500" />
-              Contact
-            </h2>
-
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-gray-700">
-                <User className="w-4 h-4 text-gray-400" />
-                <span>
-                  <strong>Gambling Manager:</strong> {site.gambling_manager}
-                </span>
-              </div>
-
-              {site.phone && (
-                <div className="flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-gray-400" />
-                  <a href={`tel:${site.phone}`} className="text-blue-600 hover:underline">
-                    {site.phone}
-                  </a>
-                </div>
-              )}
-
-              {site.website && (
-                <div className="flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-gray-400" />
-                  <a
-                    href={site.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:underline"
-                  >
-                    {site.website.replace(/^https?:\/\//, '')}
-                  </a>
-                </div>
-              )}
+        {/* Hours (operator-provided) */}
+        {hasHours && site.hours && (
+          <div className="bg-white rounded-lg shadow-sm border p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Clock className="w-5 h-5 text-gray-400" />
+              <h2 className="font-semibold text-gray-900">Hours</h2>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              {(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const).map((day) => {
+                const hours = site.hours?.[day];
+                return (
+                  <div key={day} className="flex justify-between">
+                    <span className="text-gray-500 capitalize">{day.slice(0, 3)}</span>
+                    <span className="text-gray-900">
+                      {hours ? `${hours.open} - ${hours.close}` : 'Closed'}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
+        )}
 
-          {/* Gambling Types Card */}
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <FileText className="w-5 h-5 text-blue-500" />
-              Gambling Types
-            </h2>
+        {/* Tab Type - Where to Buy (operator-provided) */}
+        {site.tab_type && (
+          <div className="bg-white rounded-lg shadow-sm border p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Store className="w-5 h-5 text-gray-400" />
+              <h2 className="font-semibold text-gray-900">Where to Buy</h2>
+            </div>
+            <span className="inline-flex px-3 py-1.5 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+              {TAB_TYPE_LABELS[site.tab_type as TabType]}
+            </span>
+          </div>
+        )}
+
+        {/* Pull-Tab Prices (operator-provided) */}
+        {site.pull_tab_prices && site.pull_tab_prices.length > 0 && (
+          <div className="bg-white rounded-lg shadow-sm border p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <DollarSign className="w-5 h-5 text-gray-400" />
+              <h2 className="font-semibold text-gray-900">Pull-Tab Prices</h2>
+            </div>
             <div className="flex flex-wrap gap-2">
-              {gamblingTypes.map((type) => (
+              {site.pull_tab_prices.sort((a, b) => b - a).map((price) => (
                 <span
-                  key={type}
-                  className="px-3 py-1.5 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
+                  key={price}
+                  className="inline-flex px-3 py-1.5 bg-green-100 text-green-800 rounded-full text-sm font-medium"
                 >
-                  {type}
+                  ${price}
                 </span>
               ))}
             </div>
           </div>
+        )}
 
-          {/* Financial Card */}
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-blue-500" />
-              Financial Info
-            </h2>
+        {/* E-Tab System (operator-provided) */}
+        {site.etab_system && (
+          <div className="bg-white rounded-lg shadow-sm border p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Monitor className="w-5 h-5 text-gray-400" />
+              <h2 className="font-semibold text-gray-900">E-Tabs</h2>
+            </div>
+            <span className="inline-flex px-3 py-1.5 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+              {ETAB_SYSTEM_LABELS[site.etab_system as EtabSystem]}
+            </span>
+          </div>
+        )}
 
-            {site.fiscal_year ? (
-              <div className="space-y-3">
-                <p className="text-sm text-gray-500">Fiscal Year: {site.fiscal_year}</p>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-500">Gross Receipts</p>
-                    <p className="text-lg font-semibold text-gray-900">
-                      {formatCurrency(site.gross_receipts)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Net Receipts</p>
-                    <p className="text-lg font-semibold text-gray-900">
-                      {formatCurrency(site.net_receipts)}
-                    </p>
-                  </div>
+        {/* Photos (operator-provided) */}
+        {hasPhotos && site.photos && (
+          <div className="bg-white rounded-lg shadow-sm border p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Camera className="w-5 h-5 text-gray-400" />
+              <h2 className="font-semibold text-gray-900">Photos</h2>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {site.photos.map((photo, index) => (
+                <div key={index} className="aspect-video bg-gray-200 rounded-lg overflow-hidden">
+                  <img
+                    src={photo}
+                    alt={`${site.site_name} photo ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-              </div>
-            ) : (
-              <p className="text-gray-500">Financial data not available</p>
-            )}
-          </div>
-
-          {/* License Card */}
-          <div className="bg-white rounded-lg shadow-sm border p-6 md:col-span-2">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Building className="w-5 h-5 text-blue-500" />
-              License Information
-            </h2>
-
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-gray-500">License Number</p>
-                <p className="text-gray-900 font-mono">{site.license_number}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Organization</p>
-                <p className="text-gray-900">{site.organization_name}</p>
-              </div>
+              ))}
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Map Preview */}
-        {site.latitude && site.longitude && (
-          <div className="mt-6 bg-white rounded-lg shadow-sm border overflow-hidden">
-            <div className="h-64 bg-gray-200 flex items-center justify-center">
-              <div className="text-center text-gray-500">
-                <MapPin className="w-8 h-8 mx-auto mb-2" />
-                <p>
-                  {site.latitude.toFixed(4)}, {site.longitude.toFixed(4)}
-                </p>
-                <a
-                  href={`https://www.google.com/maps?q=${site.latitude},${site.longitude}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline text-sm"
-                >
-                  View on Google Maps
-                </a>
-              </div>
-            </div>
+        {/* Empty State - No operator details yet */}
+        {!hasPullTabDetails && !hasEtabDetails && !hasPhotos && !hasHours && (
+          <div className="bg-gray-100 rounded-lg p-6 text-center">
+            <p className="text-gray-500 mb-2">
+              Details like hours, prices, and photos haven't been added yet.
+            </p>
+            <p className="text-sm text-gray-400">
+              Are you the operator? Claim this listing to add information.
+            </p>
           </div>
         )}
 
         {/* Claim Banner */}
         {site.listing_status === 'unclaimed' && (
-          <div className="mt-6 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-6 text-white">
+          <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-6 text-white">
             <h3 className="text-lg font-semibold mb-2">Is this your location?</h3>
-            <p className="mb-4 text-blue-100">
-              Claim this listing to add photos, hours, and contact information. Stand out to
-              customers looking for pull-tab locations near them.
+            <p className="mb-4 text-blue-100 text-sm">
+              Claim this listing to add hours, photos, tab types, and prices. Help customers find your pull-tabs.
             </p>
             <button className="bg-white text-blue-600 px-6 py-2 rounded-lg font-medium hover:bg-blue-50 transition-colors">
               Claim This Listing

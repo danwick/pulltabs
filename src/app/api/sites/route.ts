@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSites } from '@/lib/sites';
-import { SiteFilters } from '@/types/site';
+import { SiteFilters, TabType, EtabSystem, PullTabPrice } from '@/types/site';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -26,6 +26,18 @@ export async function GET(request: NextRequest) {
 
   const distance = searchParams.get('distance');
   if (distance) filters.distance = parseFloat(distance);
+
+  // New filters from Jay/Tim feedback
+  const tabType = searchParams.get('tabType');
+  if (tabType) filters.tab_type = tabType as TabType;
+
+  const pullTabPrices = searchParams.get('pullTabPrices');
+  if (pullTabPrices) {
+    filters.pull_tab_prices = pullTabPrices.split(',').map(p => parseInt(p) as PullTabPrice);
+  }
+
+  const etabSystem = searchParams.get('etabSystem');
+  if (etabSystem) filters.etab_system = etabSystem as EtabSystem;
 
   // Viewport bounds for dynamic loading
   const north = searchParams.get('north');

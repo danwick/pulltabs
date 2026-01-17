@@ -1,4 +1,4 @@
-import { Site, SiteFilters } from '@/types/site';
+import { Site, SiteFilters, TabType, EtabSystem, PullTabPrice } from '@/types/site';
 import { sql } from './db';
 import path from 'path';
 import fs from 'fs';
@@ -24,6 +24,10 @@ interface SiteRow {
   website: string | null;
   listing_status: string | null;
   is_active: boolean | null;
+  // New fields from Jay/Tim feedback
+  tab_type: string | null;
+  pull_tab_prices: number[] | null;
+  etab_system: string | null;
 }
 
 function rowToSite(row: SiteRow): Site {
@@ -50,6 +54,10 @@ function rowToSite(row: SiteRow): Site {
     photos: [],
     listing_status: (row.listing_status as 'unclaimed' | 'standard' | 'premium') || 'unclaimed',
     is_active: row.is_active ?? true,
+    // New fields
+    tab_type: row.tab_type as TabType | null,
+    pull_tab_prices: row.pull_tab_prices as PullTabPrice[] | undefined,
+    etab_system: row.etab_system as EtabSystem | null,
   };
 }
 
@@ -156,6 +164,24 @@ function applyNonGeoFilters(sites: Site[], filters?: SiteFilters): Site[] {
       const siteTypes = s.gambling_types_inferred.split(', ');
       return filters.gambling_types!.some((t) => siteTypes.includes(t));
     });
+  }
+
+  // Tab type filter (new)
+  if (filters.tab_type) {
+    sites = sites.filter((s) => s.tab_type === filters.tab_type);
+  }
+
+  // Pull-tab prices filter (new) - match if site has ANY of the requested prices
+  if (filters.pull_tab_prices && filters.pull_tab_prices.length > 0) {
+    sites = sites.filter((s) => {
+      if (!s.pull_tab_prices || s.pull_tab_prices.length === 0) return false;
+      return filters.pull_tab_prices!.some((price) => s.pull_tab_prices!.includes(price));
+    });
+  }
+
+  // E-tab system filter (new)
+  if (filters.etab_system) {
+    sites = sites.filter((s) => s.etab_system === filters.etab_system);
   }
 
   return sites;
@@ -324,6 +350,22 @@ async function getSitesFromJSON(filters?: SiteFilters): Promise<Site[]> {
       const siteTypes = s.gambling_types_inferred.split(', ');
       return filters.gambling_types!.some((t) => siteTypes.includes(t));
     });
+  }
+
+  // New filters from Jay/Tim feedback
+  if (filters?.tab_type) {
+    sites = sites.filter((s) => s.tab_type === filters.tab_type);
+  }
+
+  if (filters?.pull_tab_prices && filters.pull_tab_prices.length > 0) {
+    sites = sites.filter((s) => {
+      if (!s.pull_tab_prices || s.pull_tab_prices.length === 0) return false;
+      return filters.pull_tab_prices!.some((price) => s.pull_tab_prices!.includes(price));
+    });
+  }
+
+  if (filters?.etab_system) {
+    sites = sites.filter((s) => s.etab_system === filters.etab_system);
   }
 
   if (filters?.lat && filters?.lng && filters?.distance) {

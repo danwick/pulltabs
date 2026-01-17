@@ -24,6 +24,9 @@ function HomeContent() {
     types: [],
     useLocation: false,
     distance: 25,
+    tabType: '',
+    pullTabPrices: [],
+    etabSystem: '',
   });
 
   // Debounce timer ref for bounds changes
@@ -60,6 +63,10 @@ function HomeContent() {
     if (filters.search) params.set('search', filters.search);
     if (filters.city) params.set('city', filters.city);
     if (filters.types.length > 0) params.set('types', filters.types.join(','));
+    // New filters from Jay/Tim feedback
+    if (filters.tabType) params.set('tabType', filters.tabType);
+    if (filters.pullTabPrices.length > 0) params.set('pullTabPrices', filters.pullTabPrices.join(','));
+    if (filters.etabSystem) params.set('etabSystem', filters.etabSystem);
 
     if (filters.useLocation && userLocation) {
       params.set('lat', userLocation.lat.toString());
