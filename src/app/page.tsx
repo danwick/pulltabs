@@ -6,6 +6,7 @@ import { Site } from '@/types/site';
 import Map, { MapBounds } from '@/components/Map';
 import SiteList from '@/components/SiteList';
 import SearchFilters, { FilterState } from '@/components/SearchFilters';
+import SiteDetailPanel from '@/components/SiteDetailPanel';
 import { Menu, X } from 'lucide-react';
 
 // Wrap the main content in a component that can use searchParams
@@ -181,6 +182,17 @@ function HomeContent() {
     return 6;
   }, [initialMapState, userLocation]);
 
+  // Find the selected site object
+  const selectedSite = useMemo(() => {
+    if (!selectedSiteId) return null;
+    return sites.find(s => s.site_id === selectedSiteId) || null;
+  }, [selectedSiteId, sites]);
+
+  // Close the detail panel
+  const handleClosePanel = useCallback(() => {
+    setSelectedSiteId(null);
+  }, []);
+
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}
@@ -201,6 +213,15 @@ function HomeContent() {
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden relative">
+        {/* Site Detail Panel - slides down from top over the map */}
+        <div
+          className={`absolute top-0 left-0 right-0 z-30 transform transition-transform duration-300 ease-out ${
+            selectedSite ? 'translate-y-0' : '-translate-y-full'
+          }`}
+        >
+          <SiteDetailPanel site={selectedSite} onClose={handleClosePanel} />
+        </div>
+
         {/* Sidebar */}
         <div
           className={`absolute md:relative z-10 h-full bg-white transition-transform duration-300 ${
