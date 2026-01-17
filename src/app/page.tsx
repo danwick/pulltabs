@@ -211,17 +211,15 @@ function HomeContent() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden relative">
-        {/* Site Detail Panel - slides down from top over the map */}
-        <div
-          className={`absolute top-0 left-0 right-0 z-30 transform transition-transform duration-300 ease-out ${
-            selectedSite ? 'translate-y-0' : '-translate-y-full'
-          }`}
-        >
+      {/* Site Detail Panel - slides down from top when site selected */}
+      {selectedSite && (
+        <div className="bg-white border-b shadow-lg z-30 animate-slideDown">
           <SiteDetailPanel site={selectedSite} onClose={handleClosePanel} />
         </div>
+      )}
 
+      {/* Main Content */}
+      <div className="flex-1 flex overflow-hidden relative">
         {/* Sidebar */}
         <div
           className={`absolute md:relative z-10 h-full bg-white transition-transform duration-300 ${
