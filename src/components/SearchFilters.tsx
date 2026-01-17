@@ -54,6 +54,8 @@ export default function SearchFilters({ onSearch, onLocationRequest }: SearchFil
   const [showPricesDropdown, setShowPricesDropdown] = useState(false);
   const [showEtabDropdown, setShowEtabDropdown] = useState(false);
   const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const [citySearch, setCitySearch] = useState('');
+  const cityInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch cities for dropdown
   useEffect(() => {
@@ -280,14 +282,19 @@ export default function SearchFilters({ onSearch, onLocationRequest }: SearchFil
           Near Me
         </button>
 
-        {/* City dropdown */}
+        {/* City dropdown with typeahead */}
         <div className="relative flex-1" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => {
-              setShowCityDropdown(!showCityDropdown);
+              const opening = !showCityDropdown;
+              setShowCityDropdown(opening);
               setShowTabTypeDropdown(false);
               setShowPricesDropdown(false);
               setShowEtabDropdown(false);
+              if (opening) {
+                setCitySearch('');
+                setTimeout(() => cityInputRef.current?.focus(), 10);
+              }
             }}
             className={`w-full flex items-center justify-between px-3 py-1.5 rounded-full text-sm transition-colors ${
               city
@@ -299,22 +306,45 @@ export default function SearchFilters({ onSearch, onLocationRequest }: SearchFil
             <ChevronDown className="w-4 h-4 ml-1 flex-shrink-0" />
           </button>
           {showCityDropdown && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-48 overflow-y-auto">
-              <button
-                onClick={() => { setCity(''); setShowCityDropdown(false); }}
-                className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 ${!city ? 'bg-gray-100 font-medium' : ''}`}
-              >
-                All Cities
-              </button>
-              {cities.map((c) => (
-                <button
-                  key={c}
-                  onClick={() => { setCity(c); setShowCityDropdown(false); }}
-                  className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 ${city === c ? 'bg-blue-50 text-blue-700 font-medium' : ''}`}
-                >
-                  {c}
-                </button>
-              ))}
+            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 overflow-hidden">
+              {/* Search input */}
+              <div className="p-2 border-b">
+                <input
+                  ref={cityInputRef}
+                  type="text"
+                  placeholder="Type to search cities..."
+                  value={citySearch}
+                  onChange={(e) => setCitySearch(e.target.value)}
+                  className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
+              {/* City list */}
+              <div className="max-h-48 overflow-y-auto">
+                {!citySearch && (
+                  <button
+                    onClick={() => { setCity(''); setShowCityDropdown(false); setCitySearch(''); }}
+                    className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 ${!city ? 'bg-gray-100 font-medium' : ''}`}
+                  >
+                    All Cities
+                  </button>
+                )}
+                {cities
+                  .filter(c => c.toLowerCase().includes(citySearch.toLowerCase()))
+                  .slice(0, 50)
+                  .map((c) => (
+                    <button
+                      key={c}
+                      onClick={() => { setCity(c); setShowCityDropdown(false); setCitySearch(''); }}
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 ${city === c ? 'bg-blue-50 text-blue-700 font-medium' : ''}`}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                {citySearch && cities.filter(c => c.toLowerCase().includes(citySearch.toLowerCase())).length === 0 && (
+                  <div className="px-3 py-2 text-sm text-gray-500">No cities found</div>
+                )}
+              </div>
             </div>
           )}
         </div>
