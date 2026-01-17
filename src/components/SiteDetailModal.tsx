@@ -137,6 +137,23 @@ function SiteDetailContent({ site, onClose, hasPhotos, showCloseButton }: SiteDe
 
       {/* Content */}
       <div className="p-4 space-y-6">
+        {/* Gambling Types (from GCB data) */}
+        {site.gambling_types_inferred && (
+          <div>
+            <h3 className="text-sm font-semibold text-gray-700 mb-2">Available Games</h3>
+            <div className="flex flex-wrap gap-2">
+              {site.gambling_types_inferred.split(', ').map((type) => (
+                <span
+                  key={type}
+                  className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded-full"
+                >
+                  {type}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Hours */}
         {site.hours && (
           <div>
@@ -156,62 +173,47 @@ function SiteDetailContent({ site, onClose, hasPhotos, showCloseButton }: SiteDe
           </div>
         )}
 
-        {/* Tab Type: Booth / Bar / Machine */}
-        <div>
-          <h3 className="text-sm font-semibold text-gray-700 mb-2">Where to Buy</h3>
-          <div className="flex gap-2">
-            {['booth', 'behind_bar', 'machine'].map((type) => (
-              <span
-                key={type}
-                className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                  site.tab_type === type
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100 text-gray-400'
-                }`}
-              >
-                {TAB_TYPE_LABELS[type as TabType]}
-              </span>
-            ))}
-          </div>
-        </div>
+        {/* Operator-Provided Details (only show if site has any) */}
+        {(site.tab_type || site.pull_tab_prices?.length || site.etab_system) && (
+          <>
+            {/* Tab Type: Booth / Bar / Machine */}
+            {site.tab_type && (
+              <div>
+                <h3 className="text-sm font-semibold text-gray-700 mb-2">Where to Buy</h3>
+                <span className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-500 text-white">
+                  {TAB_TYPE_LABELS[site.tab_type as TabType]}
+                </span>
+              </div>
+            )}
 
-        {/* Pull-Tab Prices */}
-        <div>
-          <h3 className="text-sm font-semibold text-gray-700 mb-2">Pull-Tab Prices</h3>
-          <div className="flex gap-2">
-            {[5, 4, 3, 2, 1].map((price) => (
-              <span
-                key={price}
-                className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                  site.pull_tab_prices?.includes(price as any)
-                    ? 'bg-green-500 text-white'
-                    : 'bg-gray-100 text-gray-400'
-                }`}
-              >
-                ${price}
-              </span>
-            ))}
-          </div>
-        </div>
+            {/* Pull-Tab Prices */}
+            {site.pull_tab_prices && site.pull_tab_prices.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-gray-700 mb-2">Pull-Tab Prices</h3>
+                <div className="flex gap-2">
+                  {site.pull_tab_prices.sort((a, b) => b - a).map((price) => (
+                    <span
+                      key={price}
+                      className="px-4 py-2 rounded-lg text-sm font-medium bg-green-500 text-white"
+                    >
+                      ${price}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
-        {/* E-Tabs */}
-        <div>
-          <h3 className="text-sm font-semibold text-gray-700 mb-2">E-Tabs System</h3>
-          <div className="flex gap-2">
-            {['pilot', '3_diamonds'].map((system) => (
-              <span
-                key={system}
-                className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                  site.etab_system === system
-                    ? 'bg-purple-500 text-white'
-                    : 'bg-gray-100 text-gray-400'
-                }`}
-              >
-                {ETAB_SYSTEM_LABELS[system as EtabSystem]}
-              </span>
-            ))}
-          </div>
-        </div>
+            {/* E-Tabs */}
+            {site.etab_system && (
+              <div>
+                <h3 className="text-sm font-semibold text-gray-700 mb-2">E-Tabs System</h3>
+                <span className="px-4 py-2 rounded-lg text-sm font-medium bg-purple-500 text-white">
+                  {ETAB_SYSTEM_LABELS[site.etab_system as EtabSystem]}
+                </span>
+              </div>
+            )}
+          </>
+        )}
 
         {/* Photos */}
         <div>
