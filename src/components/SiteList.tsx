@@ -3,6 +3,7 @@
 import { memo, useEffect, useRef } from 'react';
 import { Site } from '@/types/site';
 import SiteCard from './SiteCard';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface SiteListProps {
   sites: Site[];
@@ -17,6 +18,7 @@ function SiteListComponent({
   onSiteSelect,
   loading,
 }: SiteListProps) {
+  const { isJackpot } = useTheme();
   const cardRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
   // Scroll selected card into view when selectedSiteId changes
@@ -32,7 +34,7 @@ function SiteListComponent({
       <div className="space-y-4 p-4">
         {[...Array(5)].map((_, i) => (
           <div key={i} className="animate-pulse">
-            <div className="h-32 bg-gray-200 rounded-lg"></div>
+            <div className={`h-32 rounded-lg ${isJackpot ? 'bg-gray-800' : 'bg-gray-200'}`}></div>
           </div>
         ))}
       </div>
@@ -41,7 +43,7 @@ function SiteListComponent({
 
   if (sites.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+      <div className={`flex flex-col items-center justify-center h-64 ${isJackpot ? 'text-gray-500' : 'text-gray-500'}`}>
         <p className="text-lg font-medium">No sites found</p>
         <p className="text-sm">Try adjusting your search or filters</p>
       </div>
@@ -50,7 +52,7 @@ function SiteListComponent({
 
   return (
     <div className="space-y-3 p-4 overflow-y-auto">
-      <p className="text-sm text-gray-500 mb-2">
+      <p className={`text-sm mb-2 ${isJackpot ? 'text-gray-400' : 'text-gray-500'}`}>
         {sites.length} {sites.length === 1 ? 'location' : 'locations'} found
       </p>
       {sites.map((site) => (

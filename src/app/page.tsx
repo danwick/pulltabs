@@ -7,11 +7,14 @@ import Map, { MapBounds } from '@/components/Map';
 import SiteList from '@/components/SiteList';
 import SearchFilters, { FilterState } from '@/components/SearchFilters';
 import SiteDetailModal from '@/components/SiteDetailModal';
+import ThemeToggle from '@/components/ThemeToggle';
+import { useTheme } from '@/contexts/ThemeContext';
 import { Menu, X } from 'lucide-react';
 
 // Wrap the main content in a component that can use searchParams
 function HomeContent() {
   const searchParams = useSearchParams();
+  const { isJackpot } = useTheme();
 
   const [sites, setSites] = useState<Site[]>([]);
   const [loading, setLoading] = useState(true);
@@ -194,20 +197,40 @@ function HomeContent() {
   }, []);
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col" style={{ background: 'var(--theme-bg)' }}>
       {/* Header */}
-      <header className="bg-white border-b px-4 py-3 flex items-center justify-between z-10">
+      <header
+        className={`px-4 py-3 flex items-center justify-between z-10 transition-all duration-300 ${
+          isJackpot
+            ? 'border-b border-transparent'
+            : 'bg-white border-b'
+        }`}
+        style={isJackpot ? { background: 'var(--theme-header-bg)' } : {}}
+      >
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowSidebar(!showSidebar)}
-            className="p-2 hover:bg-gray-100 rounded-lg md:hidden"
+            className={`p-2 rounded-lg md:hidden transition-colors ${
+              isJackpot
+                ? 'hover:bg-white/10 text-yellow-400'
+                : 'hover:bg-gray-100'
+            }`}
           >
             {showSidebar ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
-          <h1 className="text-xl font-bold text-gray-900">MN Pull-Tab Finder</h1>
+          <h1
+            className={`text-xl font-bold transition-colors ${
+              isJackpot ? 'text-yellow-400' : 'text-gray-900'
+            }`}
+          >
+            {isJackpot ? 'Pulltab Magic' : 'MN Pull-Tab Finder'}
+          </h1>
         </div>
-        <div className="text-sm text-gray-500">
-          {sites.length} locations
+        <div className="flex items-center gap-4">
+          <ThemeToggle />
+          <div className={`text-sm ${isJackpot ? 'text-yellow-400/70' : 'text-gray-500'}`}>
+            {sites.length} locations
+          </div>
         </div>
       </header>
 
@@ -215,9 +238,14 @@ function HomeContent() {
       <div className="flex-1 flex overflow-hidden relative">
         {/* Sidebar */}
         <div
-          className={`absolute md:relative z-10 h-full bg-white transition-transform duration-300 ${
+          className={`absolute md:relative z-10 h-full transition-all duration-300 ${
             showSidebar ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-          } w-full md:w-96 flex flex-col border-r`}
+          } w-full md:w-96 flex flex-col ${
+            isJackpot
+              ? 'border-r border-gray-800'
+              : 'border-r'
+          }`}
+          style={{ background: 'var(--theme-surface)' }}
         >
           <SearchFilters onSearch={handleSearch} onLocationRequest={requestLocation} />
           <div className="flex-1 overflow-y-auto">
@@ -239,12 +267,17 @@ function HomeContent() {
             selectedSiteId={selectedSiteId}
             onSiteClick={handleSiteClick}
             onBoundsChange={handleBoundsChange}
+            isJackpot={isJackpot}
           />
 
           {/* Mobile toggle button */}
           <button
             onClick={() => setShowSidebar(!showSidebar)}
-            className="absolute bottom-4 left-4 md:hidden bg-white px-4 py-2 rounded-full shadow-lg font-medium text-sm"
+            className={`absolute bottom-4 left-4 md:hidden px-4 py-2 rounded-full shadow-lg font-medium text-sm transition-all ${
+              isJackpot
+                ? 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900'
+                : 'bg-white text-gray-900'
+            }`}
           >
             {showSidebar ? 'Show Map' : `View List (${sites.length})`}
           </button>

@@ -1,8 +1,87 @@
 @import "tailwindcss";
 
+/* ============================================
+   Default Theme (Clean, professional)
+   ============================================ */
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Theme colors */
+  --theme-bg: #f9fafb;
+  --theme-surface: #ffffff;
+  --theme-surface-hover: #f3f4f6;
+  --theme-border: #e5e7eb;
+  --theme-text-primary: #111827;
+  --theme-text-secondary: #6b7280;
+  --theme-text-muted: #9ca3af;
+
+  /* Accent colors */
+  --theme-accent: #3b82f6;
+  --theme-accent-hover: #2563eb;
+  --theme-accent-light: #dbeafe;
+
+  /* Status colors */
+  --theme-success: #22c55e;
+  --theme-success-light: #dcfce7;
+  --theme-warning: #eab308;
+  --theme-warning-light: #fef9c3;
+
+  /* Header */
+  --theme-header-bg: #ffffff;
+  --theme-header-text: #111827;
+  --theme-header-border: #e5e7eb;
+
+  /* Cards */
+  --theme-card-bg: #ffffff;
+  --theme-card-border: #e5e7eb;
+  --theme-card-shadow: 0 1px 3px rgba(0,0,0,0.1);
+
+  /* Map marker */
+  --theme-marker-bg: #3b82f6;
+  --theme-marker-text: #ffffff;
+}
+
+/* ============================================
+   Jackpot Mode (Casino/gaming vibe)
+   ============================================ */
+:root.jackpot-mode {
+  --background: #0a0a0a;
+  --foreground: #f5f5f5;
+
+  /* Theme colors - dark with gold accents */
+  --theme-bg: #0a0a0a;
+  --theme-surface: #1a1a1a;
+  --theme-surface-hover: #262626;
+  --theme-border: #333333;
+  --theme-text-primary: #f5f5f5;
+  --theme-text-secondary: #a3a3a3;
+  --theme-text-muted: #737373;
+
+  /* Gold accent */
+  --theme-accent: #ffd700;
+  --theme-accent-hover: #ffed4a;
+  --theme-accent-light: rgba(255, 215, 0, 0.15);
+
+  /* Status colors */
+  --theme-success: #22c55e;
+  --theme-success-light: rgba(34, 197, 94, 0.2);
+  --theme-warning: #ffd700;
+  --theme-warning-light: rgba(255, 215, 0, 0.2);
+
+  /* Header - gradient effect */
+  --theme-header-bg: linear-gradient(135deg, #1e3a8a 0%, #4c1d95 100%);
+  --theme-header-text: #ffd700;
+  --theme-header-border: transparent;
+
+  /* Cards */
+  --theme-card-bg: #1a1a1a;
+  --theme-card-border: #333333;
+  --theme-card-shadow: 0 4px 20px rgba(255, 215, 0, 0.1);
+
+  /* Map marker - gold */
+  --theme-marker-bg: #ffd700;
+  --theme-marker-text: #0a0a0a;
 }
 
 @theme inline {
@@ -10,13 +89,6 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
@@ -95,4 +167,48 @@ body {
 
 .animate-slideInRight {
   animation: slideInRight 0.3s ease-out;
+}
+
+/* ============================================
+   Jackpot Mode specific styles
+   ============================================ */
+
+/* Jackpot mode scrollbar */
+.jackpot-mode .overflow-y-auto::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+.jackpot-mode .overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #404040;
+}
+
+.jackpot-mode .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #525252;
+}
+
+/* Jackpot mode mapbox popup */
+.jackpot-mode .mapboxgl-popup-content {
+  background: #1a1a1a;
+  color: #f5f5f5;
+  border: 1px solid #333333;
+}
+
+.jackpot-mode .mapboxgl-popup-tip {
+  border-top-color: #1a1a1a;
+}
+
+/* Gold glow effect for accents in Jackpot mode */
+.jackpot-mode .gold-glow {
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+/* Jackpot mode button hover effects */
+.jackpot-mode .btn-primary {
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4a 100%);
+  color: #0a0a0a;
+  font-weight: 600;
+}
+
+.jackpot-mode .btn-primary:hover {
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
 }

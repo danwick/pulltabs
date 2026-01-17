@@ -19,7 +19,36 @@ interface MapProps {
   onSiteClick?: (site: Site) => void;
   selectedSiteId?: number | null;
   onBoundsChange?: (bounds: MapBounds, zoom: number) => void;
+  isJackpot?: boolean;
 }
+
+// Map styles for different themes
+const MAP_STYLES = {
+  default: 'mapbox://styles/mapbox/streets-v12',
+  jackpot: 'mapbox://styles/mapbox/dark-v11',
+};
+
+// Theme-specific colors
+const THEME_COLORS = {
+  default: {
+    clusterSmall: '#3b82f6',
+    clusterMedium: '#2563eb',
+    clusterLarge: '#1d4ed8',
+    point: '#3b82f6',
+    selected: '#ef4444',
+    stroke: '#ffffff',
+    text: '#ffffff',
+  },
+  jackpot: {
+    clusterSmall: '#ffd700',
+    clusterMedium: '#f59e0b',
+    clusterLarge: '#d97706',
+    point: '#ffd700',
+    selected: '#ef4444',
+    stroke: '#000000',
+    text: '#000000',
+  },
+};
 
 // Convert sites to GeoJSON for Mapbox clustering
 function sitesToGeoJSON(sites: Site[]): GeoJSON.FeatureCollection {
@@ -52,6 +81,7 @@ function MapComponent({
   onSiteClick,
   selectedSiteId,
   onBoundsChange,
+  isJackpot = false,
 }: MapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -61,6 +91,7 @@ function MapComponent({
   const sitesRef = useRef(sites);
   const isFlying = useRef(false);
   const lastFlyToSiteId = useRef<number | null>(null); // Track which site we've flown to
+  const currentThemeRef = useRef<'default' | 'jackpot'>('default'); // Track current theme
 
   // Keep refs updated
   useEffect(() => {
@@ -87,9 +118,12 @@ function MapComponent({
 
     mapboxgl.accessToken = token;
 
+    const initialTheme = isJackpot ? 'jackpot' : 'default';
+    currentThemeRef.current = initialTheme;
+
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
+      style: MAP_STYLES[initialTheme],
       center: center,
       zoom: zoom,
     });
@@ -125,6 +159,8 @@ function MapComponent({
         clusterRadius: 50,
       });
 
+      const colors = THEME_COLORS[initialTheme];
+
       // Cluster circles
       map.current.addLayer({
         id: 'clusters',
@@ -135,11 +171,11 @@ function MapComponent({
           'circle-color': [
             'step',
             ['get', 'point_count'],
-            '#3b82f6', // blue for small clusters
+            colors.clusterSmall,
             10,
-            '#2563eb', // darker blue for medium
+            colors.clusterMedium,
             50,
-            '#1d4ed8', // even darker for large
+            colors.clusterLarge,
           ],
           'circle-radius': [
             'step',
@@ -151,7 +187,7 @@ function MapComponent({
             35, // large clusters
           ],
           'circle-stroke-width': 2,
-          'circle-stroke-color': '#fff',
+          'circle-stroke-color': colors.stroke,
         },
       });
 
@@ -167,7 +203,7 @@ function MapComponent({
           'text-size': 12,
         },
         paint: {
-          'text-color': '#ffffff',
+          'text-color': colors.text,
         },
       });
 
@@ -178,10 +214,10 @@ function MapComponent({
         source: 'sites',
         filter: ['!', ['has', 'point_count']],
         paint: {
-          'circle-color': '#3b82f6',
+          'circle-color': colors.point,
           'circle-radius': 8,
           'circle-stroke-width': 2,
-          'circle-stroke-color': '#fff',
+          'circle-stroke-color': colors.stroke,
         },
       });
 
@@ -257,16 +293,105 @@ function MapComponent({
     }
   }, [sites, mapLoaded]);
 
+  // Handle theme changes
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return;
+
+    const newTheme = isJackpot ? 'jackpot' : 'default';
+    if (currentThemeRef.current === newTheme) return;
+
+    currentThemeRef.current = newTheme;
+    const colors = THEME_COLORS[newTheme];
+
+    // Save current view state
+    const currentCenter = map.current.getCenter();
+    const currentZoom = map.current.getZoom();
+    const currentData = sitesToGeoJSON(sitesRef.current);
+
+    // Change the style
+    map.current.setStyle(MAP_STYLES[newTheme]);
+
+    // Re-add layers after style loads
+    map.current.once('style.load', () => {
+      if (!map.current) return;
+
+      // Re-add source
+      map.current.addSource('sites', {
+        type: 'geojson',
+        data: currentData,
+        cluster: true,
+        clusterMaxZoom: 14,
+        clusterRadius: 50,
+      });
+
+      // Re-add cluster layer
+      map.current.addLayer({
+        id: 'clusters',
+        type: 'circle',
+        source: 'sites',
+        filter: ['has', 'point_count'],
+        paint: {
+          'circle-color': [
+            'step',
+            ['get', 'point_count'],
+            colors.clusterSmall,
+            10,
+            colors.clusterMedium,
+            50,
+            colors.clusterLarge,
+          ],
+          'circle-radius': ['step', ['get', 'point_count'], 20, 10, 25, 50, 35],
+          'circle-stroke-width': 2,
+          'circle-stroke-color': colors.stroke,
+        },
+      });
+
+      // Re-add cluster count
+      map.current.addLayer({
+        id: 'cluster-count',
+        type: 'symbol',
+        source: 'sites',
+        filter: ['has', 'point_count'],
+        layout: {
+          'text-field': '{point_count_abbreviated}',
+          'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+          'text-size': 12,
+        },
+        paint: { 'text-color': colors.text },
+      });
+
+      // Re-add unclustered points
+      map.current.addLayer({
+        id: 'unclustered-point',
+        type: 'circle',
+        source: 'sites',
+        filter: ['!', ['has', 'point_count']],
+        paint: {
+          'circle-color': colors.point,
+          'circle-radius': 8,
+          'circle-stroke-width': 2,
+          'circle-stroke-color': colors.stroke,
+        },
+      });
+
+      // Restore view
+      map.current.setCenter(currentCenter);
+      map.current.setZoom(currentZoom);
+    });
+  }, [isJackpot, mapLoaded]);
+
   // Highlight selected point
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
+
+    const colors = THEME_COLORS[isJackpot ? 'jackpot' : 'default'];
 
     // Update paint property for selected state
     map.current.setPaintProperty('unclustered-point', 'circle-color', [
       'case',
       ['==', ['get', 'id'], selectedSiteId || -1],
-      '#ef4444', // red for selected
-      '#3b82f6', // blue for others
+      colors.selected, // red for selected
+      colors.point, // theme color for others
     ]);
 
     map.current.setPaintProperty('unclustered-point', 'circle-radius', [
@@ -275,7 +400,7 @@ function MapComponent({
       12, // larger for selected
       8, // normal for others
     ]);
-  }, [selectedSiteId, mapLoaded]);
+  }, [selectedSiteId, mapLoaded, isJackpot]);
 
   // Fly to selected site (only when selection changes, not on every sites update)
   useEffect(() => {
