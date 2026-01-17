@@ -6,7 +6,7 @@ import { Site } from '@/types/site';
 import Map, { MapBounds } from '@/components/Map';
 import SiteList from '@/components/SiteList';
 import SearchFilters, { FilterState } from '@/components/SearchFilters';
-import SiteDetailPanel from '@/components/SiteDetailPanel';
+import SiteDetailModal from '@/components/SiteDetailModal';
 import { Menu, X } from 'lucide-react';
 
 // Wrap the main content in a component that can use searchParams
@@ -220,14 +220,6 @@ function HomeContent() {
           } w-full md:w-96 flex flex-col border-r`}
         >
           <SearchFilters onSearch={handleSearch} onLocationRequest={requestLocation} />
-
-          {/* Site Detail Panel - shows in sidebar when site selected */}
-          {selectedSite && (
-            <div className="border-b shadow-sm">
-              <SiteDetailPanel site={selectedSite} onClose={handleClosePanel} />
-            </div>
-          )}
-
           <div className="flex-1 overflow-y-auto">
             <SiteList
               sites={sites}
@@ -258,6 +250,9 @@ function HomeContent() {
           </button>
         </div>
       </div>
+
+      {/* Site Detail Modal - Desktop: right panel, Mobile: bottom sheet */}
+      <SiteDetailModal site={selectedSite} onClose={handleClosePanel} />
     </div>
   );
 }
