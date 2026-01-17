@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Search, MapPin, ChevronDown, X } from 'lucide-react';
 import { TabType, EtabSystem, PullTabPrice } from '@/types/site';
 
@@ -36,6 +36,7 @@ const ETAB_SYSTEMS: { value: EtabSystem; label: string }[] = [
 ];
 
 export default function SearchFilters({ onSearch, onLocationRequest }: SearchFiltersProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const [search, setSearch] = useState('');
   const [city, setCity] = useState('');
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
@@ -108,18 +109,21 @@ export default function SearchFilters({ onSearch, onLocationRequest }: SearchFil
 
   // Close dropdowns when clicking outside
   useEffect(() => {
-    const handleClick = () => {
-      setShowTabTypeDropdown(false);
-      setShowPricesDropdown(false);
-      setShowEtabDropdown(false);
-      setShowCityDropdown(false);
+    const handleClick = (e: MouseEvent) => {
+      // Only close if click is outside the filter container
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setShowTabTypeDropdown(false);
+        setShowPricesDropdown(false);
+        setShowEtabDropdown(false);
+        setShowCityDropdown(false);
+      }
     };
     document.addEventListener('click', handleClick);
     return () => document.removeEventListener('click', handleClick);
   }, []);
 
   return (
-    <div className="bg-white border-b">
+    <div ref={containerRef} className="bg-white border-b">
       {/* Search Bar */}
       <div className="p-4 pb-2">
         <div className="relative">
