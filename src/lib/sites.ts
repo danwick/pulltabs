@@ -3,6 +3,25 @@ import { sql } from './db';
 import path from 'path';
 import fs from 'fs';
 
+// Format gambling type from snake_case to display name
+function formatGamblingType(type: string): string {
+  const typeMap: Record<string, string> = {
+    pull_tabs: 'Pull-Tabs',
+    e_tabs: 'E-Tabs',
+    bingo: 'Bingo',
+    raffles: 'Raffles',
+    paddlewheels: 'Paddlewheels',
+    tipboards: 'Tipboards',
+  };
+  return typeMap[type.trim()] || type;
+}
+
+// Format comma-separated gambling types string
+function formatGamblingTypes(types: string | null): string {
+  if (!types) return '';
+  return types.split(',').map(t => formatGamblingType(t.trim())).join(', ');
+}
+
 // Database row type (matches Neon schema)
 interface SiteRow {
   id: number;
@@ -45,7 +64,7 @@ function rowToSite(row: SiteRow): Site {
     gross_receipts: row.gross_receipts ? Number(row.gross_receipts) : null,
     net_receipts: row.net_receipts ? Number(row.net_receipts) : null,
     fiscal_year: row.fiscal_year,
-    gambling_types_inferred: row.gambling_types_inferred || '',
+    gambling_types_inferred: formatGamblingTypes(row.gambling_types_inferred),
     latitude: row.latitude ? Number(row.latitude) : null,
     longitude: row.longitude ? Number(row.longitude) : null,
     phone: row.phone,
@@ -254,18 +273,6 @@ interface SeedData {
 }
 
 let sitesCache: Site[] | null = null;
-
-function formatGamblingType(type: string): string {
-  const typeMap: Record<string, string> = {
-    pull_tabs: 'Pull-Tabs',
-    e_tabs: 'E-Tabs',
-    bingo: 'Bingo',
-    raffles: 'Raffles',
-    paddlewheels: 'Paddlewheels',
-    tipboards: 'Tipboards',
-  };
-  return typeMap[type] || type;
-}
 
 function transformSeedSite(seed: SeedSite, index: number): Site {
   return {

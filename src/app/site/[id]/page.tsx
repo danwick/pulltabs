@@ -1,5 +1,5 @@
 import { getSiteById, getSites } from '@/lib/sites';
-import { MapPin, Clock, Store, DollarSign, Monitor, Camera, Navigation } from 'lucide-react';
+import { MapPin, Clock, Store, DollarSign, Monitor, Camera, Navigation, Gamepad2 } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import BackButton from '@/components/BackButton';
 import { TAB_TYPE_LABELS, ETAB_SYSTEM_LABELS, TabType, EtabSystem } from '@/types/site';
@@ -70,6 +70,26 @@ export default async function SitePage({ params }: SitePageProps) {
             )}
           </div>
         </div>
+
+        {/* Available Games (from GCB data) */}
+        {site.gambling_types_inferred && (
+          <div className="bg-white rounded-lg shadow-sm border p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Gamepad2 className="w-5 h-5 text-gray-400" />
+              <h2 className="font-semibold text-gray-900">Available Games</h2>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {site.gambling_types_inferred.split(', ').map((type) => (
+                <span
+                  key={type}
+                  className="inline-flex px-3 py-1.5 bg-gray-100 text-gray-700 rounded-full text-sm"
+                >
+                  {type}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Hours (operator-provided) */}
         {hasHours && site.hours && (
