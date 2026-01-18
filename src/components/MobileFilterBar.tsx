@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Search, SlidersHorizontal, X, MapPin, ChevronDown } from 'lucide-react';
+import { SlidersHorizontal, X, MapPin, ChevronDown } from 'lucide-react';
 import { TabType, EtabSystem, PullTabPrice } from '@/types/site';
 import { useTheme } from '@/contexts/ThemeContext';
 import { FilterState } from './SearchFilters';
@@ -113,12 +113,11 @@ export default function MobileFilterBar({ onSearch, onLocationRequest, filters }
 
   return (
     <>
-      {/* Floating filter bar - positioned to avoid map controls on right */}
-      <div className="absolute top-3 left-3 right-16 z-20 flex gap-2">
-        {/* Filters button - primary action */}
+      {/* Floating filter button */}
+      <div className="absolute top-3 left-3 z-20">
         <button
           onClick={() => setShowDropdown(!showDropdown)}
-          className={`relative flex items-center gap-2 px-4 py-2.5 rounded-lg shadow-lg text-sm font-semibold transition-colors ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-lg shadow-lg text-sm font-semibold transition-colors ${
             showDropdown || activeFilterCount > 0
               ? isJackpot
                 ? 'bg-yellow-500 text-gray-900'
@@ -138,24 +137,6 @@ export default function MobileFilterBar({ onSearch, onLocationRequest, filters }
             </span>
           )}
         </button>
-
-        {/* Search input - secondary, smaller */}
-        <div className="flex-1 relative min-w-0">
-          <Search className={`absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 ${
-            isJackpot ? 'text-gray-400' : 'text-gray-400'
-          }`} />
-          <input
-            type="text"
-            placeholder="Search..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className={`w-full pl-8 pr-2 py-2.5 rounded-lg shadow-lg text-sm transition-colors ${
-              isJackpot
-                ? 'bg-gray-900 border border-gray-700 text-white placeholder-gray-500'
-                : 'bg-white border border-gray-200 text-gray-900 placeholder-gray-400'
-            }`}
-          />
-        </div>
       </div>
 
       {/* Filter dropdown panel */}
@@ -170,7 +151,7 @@ export default function MobileFilterBar({ onSearch, onLocationRequest, filters }
           {/* Dropdown */}
           <div
             ref={dropdownRef}
-            className={`absolute top-16 left-3 right-16 z-30 rounded-xl shadow-xl overflow-hidden ${
+            className={`absolute top-16 left-3 right-3 z-30 rounded-xl shadow-xl overflow-hidden ${
               isJackpot ? 'bg-gray-900 border border-gray-700' : 'bg-white border border-gray-200'
             }`}
           >
