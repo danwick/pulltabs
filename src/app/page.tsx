@@ -7,9 +7,9 @@ import Map, { MapBounds } from '@/components/Map';
 import SiteList from '@/components/SiteList';
 import SearchFilters, { FilterState } from '@/components/SearchFilters';
 import SiteDetailModal from '@/components/SiteDetailModal';
+import MobileFilterBar from '@/components/MobileFilterBar';
 import ThemeToggle from '@/components/ThemeToggle';
 import { useTheme } from '@/contexts/ThemeContext';
-import { Menu, X } from 'lucide-react';
 
 // Wrap the main content in a component that can use searchParams
 function HomeContent() {
@@ -21,6 +21,7 @@ function HomeContent() {
   const [selectedSiteId, setSelectedSiteId] = useState<number | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [showSidebar, setShowSidebar] = useState(true);
+  const hasSetInitialSidebar = useRef(false);
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
   const [filters, setFilters] = useState<FilterState>({
     search: '',
@@ -101,6 +102,16 @@ function HomeContent() {
   useEffect(() => {
     fetchSites();
   }, [fetchSites]);
+
+  // Set initial sidebar state based on screen width (mobile = map first)
+  useEffect(() => {
+    if (!hasSetInitialSidebar.current) {
+      hasSetInitialSidebar.current = true;
+      if (window.innerWidth < 768) {
+        setShowSidebar(false);
+      }
+    }
+  }, []);
 
   // Request user location - memoized
   const requestLocation = useCallback(() => {
@@ -208,22 +219,12 @@ function HomeContent() {
         style={isJackpot ? { background: 'var(--theme-header-bg)' } : {}}
       >
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowSidebar(!showSidebar)}
-            className={`p-2 rounded-lg md:hidden transition-colors ${
-              isJackpot
-                ? 'hover:bg-white/10 text-yellow-400'
-                : 'hover:bg-gray-100'
-            }`}
-          >
-            {showSidebar ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
           <h1
             className={`text-xl font-bold transition-colors ${
               isJackpot ? 'text-yellow-400' : 'text-gray-900'
             }`}
           >
-            {isJackpot ? 'Pulltab Magic' : 'MN Pull-Tab Finder'}
+            Pulltab Magic
           </h1>
         </div>
         <div className="flex items-center gap-4">
@@ -270,7 +271,16 @@ function HomeContent() {
             isJackpot={isJackpot}
           />
 
-          {/* Mobile toggle button */}
+          {/* Mobile filter bar (search + filters dropdown) */}
+          <div className="md:hidden">
+            <MobileFilterBar
+              onSearch={handleSearch}
+              onLocationRequest={requestLocation}
+              filters={filters}
+            />
+          </div>
+
+          {/* Mobile toggle button for list view */}
           <button
             onClick={() => setShowSidebar(!showSidebar)}
             className={`absolute bottom-4 left-4 md:hidden px-4 py-2 rounded-full shadow-lg font-medium text-sm transition-all ${
