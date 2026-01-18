@@ -111,10 +111,27 @@ export default function MobileFilterBar({ onSearch, onLocationRequest, filters }
     setDistance(25);
   };
 
+  const handleFindNearMe = () => {
+    onLocationRequest?.();
+    setUseLocation(true);
+    // Apply filters immediately with location enabled
+    onSearch({
+      search,
+      city: '',
+      types: [],
+      useLocation: true,
+      distance,
+      tabType,
+      pullTabPrices,
+      etabSystem,
+    });
+  };
+
   return (
     <>
-      {/* Floating filter button */}
-      <div className="absolute top-3 left-3 z-20">
+      {/* Floating buttons */}
+      <div className="absolute top-3 left-3 z-20 flex gap-2">
+        {/* Filters button */}
         <button
           onClick={() => setShowDropdown(!showDropdown)}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-lg shadow-lg text-sm font-semibold transition-colors ${
@@ -136,6 +153,23 @@ export default function MobileFilterBar({ onSearch, onLocationRequest, filters }
               {activeFilterCount}
             </span>
           )}
+        </button>
+
+        {/* Find near me button */}
+        <button
+          onClick={handleFindNearMe}
+          className={`flex items-center gap-1.5 px-3 py-2.5 rounded-lg shadow-lg text-sm font-medium transition-colors ${
+            useLocation
+              ? isJackpot
+                ? 'bg-yellow-500 text-gray-900'
+                : 'bg-blue-500 text-white'
+              : isJackpot
+                ? 'bg-gray-900 border border-gray-700 text-gray-300'
+                : 'bg-white border border-gray-200 text-gray-700'
+          }`}
+        >
+          <MapPin className="w-4 h-4" />
+          <span>Near me</span>
         </button>
       </div>
 
