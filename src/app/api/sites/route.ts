@@ -41,9 +41,6 @@ export async function GET(request: NextRequest) {
   const etabSystem = searchParams.get('etabSystem');
   if (etabSystem) filters.etab_system = etabSystem as EtabSystem;
 
-  const openNow = searchParams.get('openNow');
-  if (openNow === 'true') filters.open_now = true;
-
   // Viewport bounds for dynamic loading
   const north = searchParams.get('north');
   const south = searchParams.get('south');

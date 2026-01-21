@@ -32,7 +32,6 @@ function HomeContent() {
     tabTypes: [],
     pullTabPrices: [],
     etabSystem: '',
-    openNow: false,
   });
 
   // Debounce timer ref for bounds changes
@@ -73,7 +72,6 @@ function HomeContent() {
     if (filters.tabTypes.length > 0) params.set('tabTypes', filters.tabTypes.join(','));
     if (filters.pullTabPrices.length > 0) params.set('pullTabPrices', filters.pullTabPrices.join(','));
     if (filters.etabSystem) params.set('etabSystem', filters.etabSystem);
-    if (filters.openNow) params.set('openNow', 'true');
 
     if (filters.useLocation && userLocation) {
       params.set('lat', userLocation.lat.toString());

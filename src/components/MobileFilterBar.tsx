@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { SlidersHorizontal, X, MapPin, Clock } from 'lucide-react';
+import { SlidersHorizontal, X, MapPin } from 'lucide-react';
 import { TabType, EtabSystem, PullTabPrice } from '@/types/site';
 import { useTheme } from '@/contexts/ThemeContext';
 import { FilterState } from './SearchFilters';
@@ -36,7 +36,6 @@ export default function MobileFilterBar({ onSearch, onLocationRequest, filters }
   const [etabSystem, setEtabSystem] = useState<EtabSystem | ''>(filters.etabSystem);
   const [useLocation, setUseLocation] = useState(filters.useLocation);
   const [distance, setDistance] = useState(filters.distance);
-  const [openNow, setOpenNow] = useState(filters.openNow);
   const [city, setCity] = useState(filters.city);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -46,7 +45,6 @@ export default function MobileFilterBar({ onSearch, onLocationRequest, filters }
     pullTabPrices.length > 0,
     etabSystem,
     useLocation,
-    openNow,
   ].filter(Boolean).length;
 
   // Apply filters
@@ -60,7 +58,6 @@ export default function MobileFilterBar({ onSearch, onLocationRequest, filters }
       tabTypes,
       pullTabPrices,
       etabSystem,
-      openNow,
     });
   };
 
@@ -102,7 +99,6 @@ export default function MobileFilterBar({ onSearch, onLocationRequest, filters }
     setPullTabPrices([]);
     setEtabSystem('');
     setUseLocation(false);
-    setOpenNow(false);
     setCity('');
     setDistance(25);
   };
@@ -202,27 +198,7 @@ export default function MobileFilterBar({ onSearch, onLocationRequest, filters }
                 ))}
               </div>
 
-              {/* Row 2: Gambling Hours */}
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className={`text-xs font-medium w-20 flex-shrink-0 ${isJackpot ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Hours
-                </span>
-                <button
-                  onClick={() => setOpenNow(!openNow)}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs transition-colors ${
-                    openNow
-                      ? 'bg-orange-500 text-white'
-                      : isJackpot
-                        ? 'bg-gray-800 text-gray-300'
-                        : 'bg-gray-100 text-gray-700'
-                  }`}
-                >
-                  <Clock className="w-3 h-3" />
-                  Open Now
-                </button>
-              </div>
-
-              {/* Row 3: Prices */}
+              {/* Row 2: Prices */}
               <div className="flex items-center gap-2 flex-wrap">
                 <span className={`text-xs font-medium w-20 flex-shrink-0 ${isJackpot ? 'text-gray-400' : 'text-gray-500'}`}>
                   Prices

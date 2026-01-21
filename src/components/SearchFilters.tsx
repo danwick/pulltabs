@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Search, MapPin, ChevronDown, X, Clock } from 'lucide-react';
+import { Search, MapPin, ChevronDown, X } from 'lucide-react';
 import { TabType, EtabSystem, PullTabPrice } from '@/types/site';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -19,7 +19,6 @@ export interface FilterState {
   tabTypes: TabType[]; // Changed to array for multi-select
   pullTabPrices: PullTabPrice[];
   etabSystem: EtabSystem | '';
-  openNow: boolean; // Gambling hours filter
 }
 
 const DISTANCES = [5, 10, 25, 50, 100];
@@ -50,7 +49,6 @@ export default function SearchFilters({ onSearch, onLocationRequest }: SearchFil
   const [tabTypes, setTabTypes] = useState<TabType[]>([]); // Changed to array for multi-select
   const [pullTabPrices, setPullTabPrices] = useState<PullTabPrice[]>([]);
   const [etabSystem, setEtabSystem] = useState<EtabSystem | ''>('');
-  const [openNow, setOpenNow] = useState(false); // Gambling hours filter
 
   // Dropdown states
   const [showTabTypeDropdown, setShowTabTypeDropdown] = useState(false);
@@ -69,12 +67,11 @@ export default function SearchFilters({ onSearch, onLocationRequest }: SearchFil
         tabTypes,
         pullTabPrices,
         etabSystem,
-        openNow,
       });
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [search, city, selectedTypes, useLocation, distance, tabTypes, pullTabPrices, etabSystem, openNow, onSearch]);
+  }, [search, city, selectedTypes, useLocation, distance, tabTypes, pullTabPrices, etabSystem, onSearch]);
 
   const toggleTabType = (type: TabType) => {
     setTabTypes((prev) =>
@@ -104,10 +101,9 @@ export default function SearchFilters({ onSearch, onLocationRequest }: SearchFil
     setTabTypes([]);
     setPullTabPrices([]);
     setEtabSystem('');
-    setOpenNow(false);
   };
 
-  const hasActiveFilters = search || city || selectedTypes.length > 0 || useLocation || tabTypes.length > 0 || pullTabPrices.length > 0 || etabSystem || openNow;
+  const hasActiveFilters = search || city || selectedTypes.length > 0 || useLocation || tabTypes.length > 0 || pullTabPrices.length > 0 || etabSystem;
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -215,31 +211,7 @@ export default function SearchFilters({ onSearch, onLocationRequest }: SearchFil
           )}
         </div>
 
-        {/* Row 2: Gambling Hours */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setOpenNow(!openNow)}
-            className={`flex items-center gap-2 px-3 py-2 border rounded-lg text-sm transition-colors ${
-              openNow
-                ? isJackpot
-                  ? 'border-orange-500 bg-orange-500/20 text-orange-400'
-                  : 'border-orange-500 bg-orange-50 text-orange-700'
-                : isJackpot
-                  ? 'border-gray-700 text-gray-300 hover:border-gray-600'
-                  : 'border-gray-300 text-gray-700 hover:border-gray-400'
-            }`}
-          >
-            <Clock className="w-4 h-4" />
-            <span>Open Now</span>
-          </button>
-          {!openNow && (
-            <span className={`text-xs ${isJackpot ? 'text-gray-500' : 'text-gray-400'}`}>
-              (Gambling Hours - shows sites open now)
-            </span>
-          )}
-        </div>
-
-        {/* Row 3: Pull-Tab Prices */}
+        {/* Row 2: Pull-Tab Prices */}
         <div className="relative" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => {
@@ -299,7 +271,7 @@ export default function SearchFilters({ onSearch, onLocationRequest }: SearchFil
           )}
         </div>
 
-        {/* Row 4: E-Tabs */}
+        {/* Row 3: E-Tabs */}
         <div className="relative" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => {

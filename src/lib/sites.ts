@@ -206,43 +206,7 @@ function applyNonGeoFilters(sites: Site[], filters?: SiteFilters): Site[] {
     sites = sites.filter((s) => s.etab_system === filters.etab_system);
   }
 
-  // Open now filter - only show sites that are currently open
-  if (filters.open_now) {
-    sites = sites.filter((s) => {
-      if (!s.hours) return false; // Skip sites without hours data
-      return isCurrentlyOpen(s.hours);
-    });
-  }
-
   return sites;
-}
-
-// Helper function to check if a site is currently open
-function isCurrentlyOpen(hours: Site['hours']): boolean {
-  if (!hours) return false;
-
-  const now = new Date();
-  const dayOfWeek = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase() as keyof typeof hours;
-  const currentTime = now.getHours() * 100 + now.getMinutes();
-
-  const todayHours = hours[dayOfWeek];
-  if (!todayHours || !todayHours.open || !todayHours.close) return false;
-
-  const openTime = parseTimeToNumber(todayHours.open);
-  const closeTime = parseTimeToNumber(todayHours.close);
-
-  // Handle midnight crossover (e.g., 11pm - 2am)
-  if (closeTime < openTime) {
-    return currentTime >= openTime || currentTime < closeTime;
-  }
-
-  return currentTime >= openTime && currentTime < closeTime;
-}
-
-// Parse time string (e.g., "11:00", "23:00") to number for comparison
-function parseTimeToNumber(time: string): number {
-  const [hours, minutes] = time.split(':').map(Number);
-  return hours * 100 + (minutes || 0);
 }
 
 async function getSiteByIdFromDB(id: number): Promise<Site | null> {
@@ -415,14 +379,6 @@ async function getSitesFromJSON(filters?: SiteFilters): Promise<Site[]> {
 
   if (filters?.etab_system) {
     sites = sites.filter((s) => s.etab_system === filters.etab_system);
-  }
-
-  // Open now filter
-  if (filters?.open_now) {
-    sites = sites.filter((s) => {
-      if (!s.hours) return false;
-      return isCurrentlyOpen(s.hours);
-    });
   }
 
   if (filters?.lat && filters?.lng && filters?.distance) {
