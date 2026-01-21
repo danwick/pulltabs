@@ -28,8 +28,10 @@ export async function GET(request: NextRequest) {
   if (distance) filters.distance = parseFloat(distance);
 
   // New filters from Jay/Tim feedback
-  const tabType = searchParams.get('tabType');
-  if (tabType) filters.tab_type = tabType as TabType;
+  const tabTypes = searchParams.get('tabTypes');
+  if (tabTypes) {
+    filters.tab_types = tabTypes.split(',') as TabType[];
+  }
 
   const pullTabPrices = searchParams.get('pullTabPrices');
   if (pullTabPrices) {
@@ -38,6 +40,9 @@ export async function GET(request: NextRequest) {
 
   const etabSystem = searchParams.get('etabSystem');
   if (etabSystem) filters.etab_system = etabSystem as EtabSystem;
+
+  const openNow = searchParams.get('openNow');
+  if (openNow === 'true') filters.open_now = true;
 
   // Viewport bounds for dynamic loading
   const north = searchParams.get('north');

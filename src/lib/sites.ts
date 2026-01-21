@@ -185,12 +185,15 @@ function applyNonGeoFilters(sites: Site[], filters?: SiteFilters): Site[] {
     });
   }
 
-  // Tab type filter (new)
-  if (filters.tab_type) {
-    sites = sites.filter((s) => s.tab_type === filters.tab_type);
+  // Tab types filter (multi-select) - match if site has ANY of the selected types
+  if (filters.tab_types && filters.tab_types.length > 0) {
+    sites = sites.filter((s) => {
+      if (!s.tab_type) return false;
+      return filters.tab_types!.includes(s.tab_type);
+    });
   }
 
-  // Pull-tab prices filter (new) - match if site has ANY of the requested prices
+  // Pull-tab prices filter - match if site has ANY of the requested prices
   if (filters.pull_tab_prices && filters.pull_tab_prices.length > 0) {
     sites = sites.filter((s) => {
       if (!s.pull_tab_prices || s.pull_tab_prices.length === 0) return false;
@@ -198,12 +201,48 @@ function applyNonGeoFilters(sites: Site[], filters?: SiteFilters): Site[] {
     });
   }
 
-  // E-tab system filter (new)
+  // E-tab system filter
   if (filters.etab_system) {
     sites = sites.filter((s) => s.etab_system === filters.etab_system);
   }
 
+  // Open now filter - only show sites that are currently open
+  if (filters.open_now) {
+    sites = sites.filter((s) => {
+      if (!s.hours) return false; // Skip sites without hours data
+      return isCurrentlyOpen(s.hours);
+    });
+  }
+
   return sites;
+}
+
+// Helper function to check if a site is currently open
+function isCurrentlyOpen(hours: Site['hours']): boolean {
+  if (!hours) return false;
+
+  const now = new Date();
+  const dayOfWeek = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase() as keyof typeof hours;
+  const currentTime = now.getHours() * 100 + now.getMinutes();
+
+  const todayHours = hours[dayOfWeek];
+  if (!todayHours || !todayHours.open || !todayHours.close) return false;
+
+  const openTime = parseTimeToNumber(todayHours.open);
+  const closeTime = parseTimeToNumber(todayHours.close);
+
+  // Handle midnight crossover (e.g., 11pm - 2am)
+  if (closeTime < openTime) {
+    return currentTime >= openTime || currentTime < closeTime;
+  }
+
+  return currentTime >= openTime && currentTime < closeTime;
+}
+
+// Parse time string (e.g., "11:00", "23:00") to number for comparison
+function parseTimeToNumber(time: string): number {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 100 + (minutes || 0);
 }
 
 async function getSiteByIdFromDB(id: number): Promise<Site | null> {
@@ -360,8 +399,11 @@ async function getSitesFromJSON(filters?: SiteFilters): Promise<Site[]> {
   }
 
   // New filters from Jay/Tim feedback
-  if (filters?.tab_type) {
-    sites = sites.filter((s) => s.tab_type === filters.tab_type);
+  if (filters?.tab_types && filters.tab_types.length > 0) {
+    sites = sites.filter((s) => {
+      if (!s.tab_type) return false;
+      return filters.tab_types!.includes(s.tab_type);
+    });
   }
 
   if (filters?.pull_tab_prices && filters.pull_tab_prices.length > 0) {
@@ -373,6 +415,14 @@ async function getSitesFromJSON(filters?: SiteFilters): Promise<Site[]> {
 
   if (filters?.etab_system) {
     sites = sites.filter((s) => s.etab_system === filters.etab_system);
+  }
+
+  // Open now filter
+  if (filters?.open_now) {
+    sites = sites.filter((s) => {
+      if (!s.hours) return false;
+      return isCurrentlyOpen(s.hours);
+    });
   }
 
   if (filters?.lat && filters?.lng && filters?.distance) {

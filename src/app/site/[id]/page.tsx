@@ -1,7 +1,8 @@
 import { getSiteById, getSites } from '@/lib/sites';
-import { MapPin, Clock, Store, DollarSign, Monitor, Camera, Navigation, Gamepad2 } from 'lucide-react';
+import { MapPin, Clock, Store, DollarSign, Monitor, Camera, Navigation, Gamepad2, Globe, Phone } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import BackButton from '@/components/BackButton';
+import ClaimListingButton from '@/components/ClaimListingButton';
 import { TAB_TYPE_LABELS, ETAB_SYSTEM_LABELS, TabType, EtabSystem } from '@/types/site';
 
 interface SitePageProps {
@@ -114,12 +115,12 @@ export default async function SitePage({ params }: SitePageProps) {
           </div>
         )}
 
-        {/* Tab Type - Where to Buy (operator-provided) */}
+        {/* Tab Type - Seller Type (operator-provided) */}
         {site.tab_type && (
           <div className="bg-white rounded-lg shadow-sm border p-4">
             <div className="flex items-center gap-2 mb-3">
               <Store className="w-5 h-5 text-gray-400" />
-              <h2 className="font-semibold text-gray-900">Where to Buy</h2>
+              <h2 className="font-semibold text-gray-900">Seller Type</h2>
             </div>
             <span className="inline-flex px-3 py-1.5 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
               {TAB_TYPE_LABELS[site.tab_type as TabType]}
@@ -160,6 +161,38 @@ export default async function SitePage({ params }: SitePageProps) {
           </div>
         )}
 
+        {/* Bar Website & Phone (under E-tabs per Jay/Tim feedback) */}
+        {(site.website || site.phone) && (
+          <div className="bg-white rounded-lg shadow-sm border p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Globe className="w-5 h-5 text-gray-400" />
+              <h2 className="font-semibold text-gray-900">Contact Info</h2>
+            </div>
+            <div className="space-y-2">
+              {site.website && (
+                <a
+                  href={site.website.startsWith('http') ? site.website : `https://${site.website}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-blue-500 hover:text-blue-600"
+                >
+                  <Globe className="w-4 h-4" />
+                  <span className="underline">{site.website}</span>
+                </a>
+              )}
+              {site.phone && (
+                <a
+                  href={`tel:${site.phone}`}
+                  className="flex items-center gap-2 text-blue-500 hover:text-blue-600"
+                >
+                  <Phone className="w-4 h-4" />
+                  <span>{site.phone}</span>
+                </a>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Photos (operator-provided) */}
         {hasPhotos && site.photos && (
           <div className="bg-white rounded-lg shadow-sm border p-4">
@@ -195,15 +228,7 @@ export default async function SitePage({ params }: SitePageProps) {
 
         {/* Claim Banner */}
         {site.listing_status === 'unclaimed' && (
-          <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-6 text-white">
-            <h3 className="text-lg font-semibold mb-2">Is this your location?</h3>
-            <p className="mb-4 text-blue-100 text-sm">
-              Claim this listing to add hours, photos, tab types, and prices. Help customers find your pull-tabs.
-            </p>
-            <button className="bg-white text-blue-600 px-6 py-2 rounded-lg font-medium hover:bg-blue-50 transition-colors">
-              Claim This Listing
-            </button>
-          </div>
+          <ClaimListingButton siteId={site.site_id} siteName={site.site_name} />
         )}
       </main>
     </div>

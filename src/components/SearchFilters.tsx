@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Search, MapPin, ChevronDown, X } from 'lucide-react';
+import { Search, MapPin, ChevronDown, X, Clock } from 'lucide-react';
 import { TabType, EtabSystem, PullTabPrice } from '@/types/site';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -16,9 +16,10 @@ export interface FilterState {
   types: string[];
   useLocation: boolean;
   distance: number;
-  tabType: TabType | '';
+  tabTypes: TabType[]; // Changed to array for multi-select
   pullTabPrices: PullTabPrice[];
   etabSystem: EtabSystem | '';
+  openNow: boolean; // Gambling hours filter
 }
 
 const DISTANCES = [5, 10, 25, 50, 100];
@@ -44,28 +45,17 @@ export default function SearchFilters({ onSearch, onLocationRequest }: SearchFil
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [useLocation, setUseLocation] = useState(false);
   const [distance, setDistance] = useState(25);
-  const [cities, setCities] = useState<string[]>([]);
 
   // Primary filters (always visible)
-  const [tabType, setTabType] = useState<TabType | ''>('');
+  const [tabTypes, setTabTypes] = useState<TabType[]>([]); // Changed to array for multi-select
   const [pullTabPrices, setPullTabPrices] = useState<PullTabPrice[]>([]);
   const [etabSystem, setEtabSystem] = useState<EtabSystem | ''>('');
+  const [openNow, setOpenNow] = useState(false); // Gambling hours filter
 
   // Dropdown states
   const [showTabTypeDropdown, setShowTabTypeDropdown] = useState(false);
   const [showPricesDropdown, setShowPricesDropdown] = useState(false);
   const [showEtabDropdown, setShowEtabDropdown] = useState(false);
-  const [showCityDropdown, setShowCityDropdown] = useState(false);
-  const [citySearch, setCitySearch] = useState('');
-  const cityInputRef = useRef<HTMLInputElement>(null);
-
-  // Fetch cities for dropdown
-  useEffect(() => {
-    fetch('/api/cities')
-      .then((res) => res.json())
-      .then((data) => setCities(data.cities || []))
-      .catch(console.error);
-  }, []);
 
   // Debounced search
   useEffect(() => {
@@ -76,14 +66,21 @@ export default function SearchFilters({ onSearch, onLocationRequest }: SearchFil
         types: selectedTypes,
         useLocation,
         distance,
-        tabType,
+        tabTypes,
         pullTabPrices,
         etabSystem,
+        openNow,
       });
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [search, city, selectedTypes, useLocation, distance, tabType, pullTabPrices, etabSystem, onSearch]);
+  }, [search, city, selectedTypes, useLocation, distance, tabTypes, pullTabPrices, etabSystem, openNow, onSearch]);
+
+  const toggleTabType = (type: TabType) => {
+    setTabTypes((prev) =>
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
+    );
+  };
 
   const togglePrice = (price: PullTabPrice) => {
     setPullTabPrices((prev) =>
@@ -104,12 +101,13 @@ export default function SearchFilters({ onSearch, onLocationRequest }: SearchFil
     setSelectedTypes([]);
     setUseLocation(false);
     setDistance(25);
-    setTabType('');
+    setTabTypes([]);
     setPullTabPrices([]);
     setEtabSystem('');
+    setOpenNow(false);
   };
 
-  const hasActiveFilters = search || city || selectedTypes.length > 0 || useLocation || tabType || pullTabPrices.length > 0 || etabSystem;
+  const hasActiveFilters = search || city || selectedTypes.length > 0 || useLocation || tabTypes.length > 0 || pullTabPrices.length > 0 || etabSystem || openNow;
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -119,7 +117,6 @@ export default function SearchFilters({ onSearch, onLocationRequest }: SearchFil
         setShowTabTypeDropdown(false);
         setShowPricesDropdown(false);
         setShowEtabDropdown(false);
-        setShowCityDropdown(false);
       }
     };
     document.addEventListener('click', handleClick);
@@ -156,17 +153,16 @@ export default function SearchFilters({ onSearch, onLocationRequest }: SearchFil
 
       {/* Primary Filters - Always Visible */}
       <div className="px-4 pb-3 space-y-2">
-        {/* Row 1: Tab Type Dropdown */}
+        {/* Row 1: Seller Type Dropdown (multi-select) */}
         <div className="relative" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => {
               setShowTabTypeDropdown(!showTabTypeDropdown);
               setShowPricesDropdown(false);
               setShowEtabDropdown(false);
-              setShowCityDropdown(false);
             }}
             className={`w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm transition-colors ${
-              tabType
+              tabTypes.length > 0
                 ? isJackpot
                   ? 'border-yellow-500 bg-yellow-500/20 text-yellow-400'
                   : 'border-blue-500 bg-blue-50 text-blue-700'
@@ -175,48 +171,81 @@ export default function SearchFilters({ onSearch, onLocationRequest }: SearchFil
                   : 'border-gray-300 text-gray-700 hover:border-gray-400'
             }`}
           >
-            <span>{tabType ? TAB_TYPES.find(t => t.value === tabType)?.label : 'Where to Buy (Booth / Bar / Machine)'}</span>
+            <span>
+              {tabTypes.length > 0
+                ? `Seller Type: ${tabTypes.map(t => TAB_TYPES.find(tab => tab.value === t)?.label).join(', ')}`
+                : 'Seller Type (Booth / Bar / Machine)'
+              }
+            </span>
             <ChevronDown className={`w-4 h-4 transition-transform ${showTabTypeDropdown ? 'rotate-180' : ''}`} />
           </button>
           {showTabTypeDropdown && (
-            <div className={`absolute top-full left-0 right-0 mt-1 border rounded-lg shadow-lg z-20 ${
+            <div className={`absolute top-full left-0 right-0 mt-1 border rounded-lg shadow-lg z-20 p-3 ${
               isJackpot ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'
             }`}>
-              <button
-                onClick={() => { setTabType(''); setShowTabTypeDropdown(false); }}
-                className={`w-full text-left px-3 py-2 text-sm ${
-                  !tabType
-                    ? isJackpot ? 'bg-gray-800 font-medium text-white' : 'bg-gray-100 font-medium'
-                    : isJackpot ? 'text-gray-300 hover:bg-gray-800' : 'hover:bg-gray-50'
-                }`}
-              >
-                All Types
-              </button>
-              {TAB_TYPES.map(({ value, label }) => (
+              <p className={`text-xs mb-2 ${isJackpot ? 'text-gray-400' : 'text-gray-500'}`}>Select seller types:</p>
+              <div className="flex flex-wrap gap-2">
+                {TAB_TYPES.map(({ value, label }) => (
+                  <button
+                    key={value}
+                    onClick={() => toggleTabType(value)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      tabTypes.includes(value)
+                        ? isJackpot
+                          ? 'bg-yellow-500 text-gray-900'
+                          : 'bg-blue-500 text-white'
+                        : isJackpot
+                          ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {tabTypes.length > 0 && (
                 <button
-                  key={value}
-                  onClick={() => { setTabType(value); setShowTabTypeDropdown(false); }}
-                  className={`w-full text-left px-3 py-2 text-sm ${
-                    tabType === value
-                      ? isJackpot ? 'bg-yellow-500/20 text-yellow-400 font-medium' : 'bg-blue-50 text-blue-700 font-medium'
-                      : isJackpot ? 'text-gray-300 hover:bg-gray-800' : 'hover:bg-gray-50'
-                  }`}
+                  onClick={() => setTabTypes([])}
+                  className={`mt-2 text-xs ${isJackpot ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`}
                 >
-                  {label}
+                  Clear selection
                 </button>
-              ))}
+              )}
             </div>
           )}
         </div>
 
-        {/* Row 2: Pull-Tab Prices */}
+        {/* Row 2: Gambling Hours */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setOpenNow(!openNow)}
+            className={`flex items-center gap-2 px-3 py-2 border rounded-lg text-sm transition-colors ${
+              openNow
+                ? isJackpot
+                  ? 'border-orange-500 bg-orange-500/20 text-orange-400'
+                  : 'border-orange-500 bg-orange-50 text-orange-700'
+                : isJackpot
+                  ? 'border-gray-700 text-gray-300 hover:border-gray-600'
+                  : 'border-gray-300 text-gray-700 hover:border-gray-400'
+            }`}
+          >
+            <Clock className="w-4 h-4" />
+            <span>Open Now</span>
+          </button>
+          {!openNow && (
+            <span className={`text-xs ${isJackpot ? 'text-gray-500' : 'text-gray-400'}`}>
+              (Gambling Hours - shows sites open now)
+            </span>
+          )}
+        </div>
+
+        {/* Row 3: Pull-Tab Prices */}
         <div className="relative" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => {
               setShowPricesDropdown(!showPricesDropdown);
               setShowTabTypeDropdown(false);
               setShowEtabDropdown(false);
-              setShowCityDropdown(false);
             }}
             className={`w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm transition-colors ${
               pullTabPrices.length > 0
@@ -270,14 +299,13 @@ export default function SearchFilters({ onSearch, onLocationRequest }: SearchFil
           )}
         </div>
 
-        {/* Row 3: E-Tabs */}
+        {/* Row 4: E-Tabs */}
         <div className="relative" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => {
               setShowEtabDropdown(!showEtabDropdown);
               setShowTabTypeDropdown(false);
               setShowPricesDropdown(false);
-              setShowCityDropdown(false);
             }}
             className={`w-full flex items-center justify-between px-3 py-2 border rounded-lg text-sm transition-colors ${
               etabSystem
@@ -343,91 +371,6 @@ export default function SearchFilters({ onSearch, onLocationRequest }: SearchFil
           <MapPin className="w-4 h-4" />
           Near Me
         </button>
-
-        {/* City dropdown with typeahead */}
-        <div className="relative flex-1" onClick={(e) => e.stopPropagation()}>
-          <button
-            onClick={() => {
-              const opening = !showCityDropdown;
-              setShowCityDropdown(opening);
-              setShowTabTypeDropdown(false);
-              setShowPricesDropdown(false);
-              setShowEtabDropdown(false);
-              if (opening) {
-                setCitySearch('');
-                setTimeout(() => cityInputRef.current?.focus(), 10);
-              }
-            }}
-            className={`w-full flex items-center justify-between px-3 py-1.5 rounded-full text-sm transition-colors ${
-              city
-                ? isJackpot
-                  ? 'bg-yellow-500 text-gray-900'
-                  : 'bg-blue-500 text-white'
-                : isJackpot
-                  ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            <span className="truncate">{city || 'All Cities'}</span>
-            <ChevronDown className="w-4 h-4 ml-1 flex-shrink-0" />
-          </button>
-          {showCityDropdown && (
-            <div className={`absolute top-full left-0 right-0 mt-1 border rounded-lg shadow-lg z-20 overflow-hidden ${
-              isJackpot ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'
-            }`}>
-              {/* Search input */}
-              <div className={`p-2 border-b ${isJackpot ? 'border-gray-700' : 'border-gray-200'}`}>
-                <input
-                  ref={cityInputRef}
-                  type="text"
-                  placeholder="Type to search cities..."
-                  value={citySearch}
-                  onChange={(e) => setCitySearch(e.target.value)}
-                  className={`w-full px-3 py-1.5 text-sm border rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-transparent ${
-                    isJackpot
-                      ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-500'
-                      : 'border-gray-300 text-gray-900'
-                  }`}
-                  onClick={(e) => e.stopPropagation()}
-                />
-              </div>
-              {/* City list */}
-              <div className="max-h-48 overflow-y-auto">
-                {!citySearch && (
-                  <button
-                    onClick={() => { setCity(''); setShowCityDropdown(false); setCitySearch(''); }}
-                    className={`w-full text-left px-3 py-2 text-sm ${
-                      !city
-                        ? isJackpot ? 'bg-gray-800 font-medium text-white' : 'bg-gray-100 font-medium'
-                        : isJackpot ? 'text-gray-300 hover:bg-gray-800' : 'hover:bg-gray-50'
-                    }`}
-                  >
-                    All Cities
-                  </button>
-                )}
-                {cities
-                  .filter(c => c.toLowerCase().includes(citySearch.toLowerCase()))
-                  .slice(0, 50)
-                  .map((c) => (
-                    <button
-                      key={c}
-                      onClick={() => { setCity(c); setShowCityDropdown(false); setCitySearch(''); }}
-                      className={`w-full text-left px-3 py-2 text-sm ${
-                        city === c
-                          ? isJackpot ? 'bg-yellow-500/20 text-yellow-400 font-medium' : 'bg-blue-50 text-blue-700 font-medium'
-                          : isJackpot ? 'text-gray-300 hover:bg-gray-800' : 'hover:bg-gray-50'
-                      }`}
-                    >
-                      {c}
-                    </button>
-                  ))}
-                {citySearch && cities.filter(c => c.toLowerCase().includes(citySearch.toLowerCase())).length === 0 && (
-                  <div className={`px-3 py-2 text-sm ${isJackpot ? 'text-gray-500' : 'text-gray-500'}`}>No cities found</div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
 
         {hasActiveFilters && (
           <button

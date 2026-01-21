@@ -2,7 +2,7 @@
 
 import { useEffect, useCallback } from 'react';
 import { Site, TAB_TYPE_LABELS, ETAB_SYSTEM_LABELS, TabType, EtabSystem } from '@/types/site';
-import { X, MapPin, Navigation, Clock, ExternalLink } from 'lucide-react';
+import { X, MapPin, Navigation, Clock, ExternalLink, Globe, Phone } from 'lucide-react';
 import Link from 'next/link';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -210,7 +210,7 @@ function SiteDetailContent({ site, onClose, hasPhotos, showCloseButton, isJackpo
             {site.tab_type && (
               <div>
                 <h3 className={`text-sm font-semibold mb-2 ${isJackpot ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Where to Buy
+                  Seller Type
                 </h3>
                 <span className={`px-4 py-2 rounded-lg text-sm font-medium ${
                   isJackpot ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-500 text-white'
@@ -255,6 +255,39 @@ function SiteDetailContent({ site, onClose, hasPhotos, showCloseButton, isJackpo
               </div>
             )}
           </>
+        )}
+
+        {/* Bar Contact Info (Website & Phone) */}
+        {(site.website || site.phone) && (
+          <div className={`space-y-3 pt-4 border-t ${isJackpot ? 'border-gray-800' : 'border-gray-200'}`}>
+            <h3 className={`text-sm font-semibold ${isJackpot ? 'text-gray-300' : 'text-gray-700'}`}>
+              Contact Info
+            </h3>
+            {site.website && (
+              <a
+                href={site.website.startsWith('http') ? site.website : `https://${site.website}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`flex items-center gap-2 text-sm ${
+                  isJackpot ? 'text-yellow-400 hover:text-yellow-300' : 'text-blue-500 hover:text-blue-600'
+                }`}
+              >
+                <Globe className="w-4 h-4" />
+                <span className="underline">{site.website}</span>
+              </a>
+            )}
+            {site.phone && (
+              <a
+                href={`tel:${site.phone}`}
+                className={`flex items-center gap-2 text-sm ${
+                  isJackpot ? 'text-yellow-400 hover:text-yellow-300' : 'text-blue-500 hover:text-blue-600'
+                }`}
+              >
+                <Phone className="w-4 h-4" />
+                <span>{site.phone}</span>
+              </a>
+            )}
+          </div>
         )}
 
         {/* Photos */}

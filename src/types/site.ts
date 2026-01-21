@@ -53,9 +53,10 @@ export interface SiteFilters {
     west: number;
   };
   // New filters from Jay/Tim feedback
-  tab_type?: TabType;
+  tab_types?: TabType[]; // Changed to array for multi-select
   pull_tab_prices?: PullTabPrice[];
   etab_system?: EtabSystem;
+  open_now?: boolean; // Filter to sites open at current time
 }
 
 export type GamblingType =

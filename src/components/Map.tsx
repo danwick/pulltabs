@@ -65,6 +65,8 @@ function sitesToGeoJSON(sites: Site[]): GeoJSON.FeatureCollection {
           city: site.city,
           address: site.street_address,
           types: site.gambling_types_inferred,
+          listing_status: site.listing_status || 'unclaimed',
+          is_premium: site.listing_status === 'premium' ? 1 : 0,
         },
         geometry: {
           type: 'Point' as const,
@@ -207,16 +209,43 @@ function MapComponent({
         },
       });
 
-      // Individual points (unclustered)
+      // Individual points - Basic (unclaimed/standard) - circles
       map.current.addLayer({
-        id: 'unclustered-point',
+        id: 'unclustered-point-basic',
         type: 'circle',
         source: 'sites',
-        filter: ['!', ['has', 'point_count']],
+        filter: ['all', ['!', ['has', 'point_count']], ['!=', ['get', 'listing_status'], 'premium']],
         paint: {
           'circle-color': colors.point,
           'circle-radius': 8,
           'circle-stroke-width': 2,
+          'circle-stroke-color': colors.stroke,
+        },
+      });
+
+      // Individual points - Premium - stars (larger gold circles with glow effect)
+      map.current.addLayer({
+        id: 'unclustered-point-premium-glow',
+        type: 'circle',
+        source: 'sites',
+        filter: ['all', ['!', ['has', 'point_count']], ['==', ['get', 'listing_status'], 'premium']],
+        paint: {
+          'circle-color': initialTheme === 'jackpot' ? '#ffd700' : '#fbbf24',
+          'circle-radius': 16,
+          'circle-blur': 0.5,
+          'circle-opacity': 0.4,
+        },
+      });
+
+      map.current.addLayer({
+        id: 'unclustered-point-premium',
+        type: 'circle',
+        source: 'sites',
+        filter: ['all', ['!', ['has', 'point_count']], ['==', ['get', 'listing_status'], 'premium']],
+        paint: {
+          'circle-color': initialTheme === 'jackpot' ? '#ffd700' : '#fbbf24',
+          'circle-radius': 10,
+          'circle-stroke-width': 3,
           'circle-stroke-color': colors.stroke,
         },
       });
@@ -244,8 +273,8 @@ function MapComponent({
         });
       });
 
-      // Click on individual point
-      map.current.on('click', 'unclustered-point', (e) => {
+      // Click handler for individual points (both basic and premium)
+      const handlePointClick = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.GeoJSONFeature[] }) => {
         if (!e.features?.length) return;
         const feature = e.features[0];
         const siteId = feature.properties?.id;
@@ -255,7 +284,10 @@ function MapComponent({
         if (site) {
           onSiteClickRef.current?.(site);
         }
-      });
+      };
+
+      map.current.on('click', 'unclustered-point-basic', handlePointClick);
+      map.current.on('click', 'unclustered-point-premium', handlePointClick);
 
       // Change cursor on hover
       map.current.on('mouseenter', 'clusters', () => {
@@ -264,10 +296,16 @@ function MapComponent({
       map.current.on('mouseleave', 'clusters', () => {
         if (map.current) map.current.getCanvas().style.cursor = '';
       });
-      map.current.on('mouseenter', 'unclustered-point', () => {
+      map.current.on('mouseenter', 'unclustered-point-basic', () => {
         if (map.current) map.current.getCanvas().style.cursor = 'pointer';
       });
-      map.current.on('mouseleave', 'unclustered-point', () => {
+      map.current.on('mouseleave', 'unclustered-point-basic', () => {
+        if (map.current) map.current.getCanvas().style.cursor = '';
+      });
+      map.current.on('mouseenter', 'unclustered-point-premium', () => {
+        if (map.current) map.current.getCanvas().style.cursor = 'pointer';
+      });
+      map.current.on('mouseleave', 'unclustered-point-premium', () => {
         if (map.current) map.current.getCanvas().style.cursor = '';
       });
 
@@ -360,16 +398,44 @@ function MapComponent({
         paint: { 'text-color': colors.text },
       });
 
-      // Re-add unclustered points
+      // Re-add unclustered points - Basic
       map.current.addLayer({
-        id: 'unclustered-point',
+        id: 'unclustered-point-basic',
         type: 'circle',
         source: 'sites',
-        filter: ['!', ['has', 'point_count']],
+        filter: ['all', ['!', ['has', 'point_count']], ['!=', ['get', 'listing_status'], 'premium']],
         paint: {
           'circle-color': colors.point,
           'circle-radius': 8,
           'circle-stroke-width': 2,
+          'circle-stroke-color': colors.stroke,
+        },
+      });
+
+      // Re-add unclustered points - Premium glow
+      map.current.addLayer({
+        id: 'unclustered-point-premium-glow',
+        type: 'circle',
+        source: 'sites',
+        filter: ['all', ['!', ['has', 'point_count']], ['==', ['get', 'listing_status'], 'premium']],
+        paint: {
+          'circle-color': newTheme === 'jackpot' ? '#ffd700' : '#fbbf24',
+          'circle-radius': 16,
+          'circle-blur': 0.5,
+          'circle-opacity': 0.4,
+        },
+      });
+
+      // Re-add unclustered points - Premium
+      map.current.addLayer({
+        id: 'unclustered-point-premium',
+        type: 'circle',
+        source: 'sites',
+        filter: ['all', ['!', ['has', 'point_count']], ['==', ['get', 'listing_status'], 'premium']],
+        paint: {
+          'circle-color': newTheme === 'jackpot' ? '#ffd700' : '#fbbf24',
+          'circle-radius': 10,
+          'circle-stroke-width': 3,
           'circle-stroke-color': colors.stroke,
         },
       });
@@ -385,20 +451,44 @@ function MapComponent({
     if (!map.current || !mapLoaded) return;
 
     const colors = THEME_COLORS[isJackpot ? 'jackpot' : 'default'];
+    const premiumColor = isJackpot ? '#ffd700' : '#fbbf24';
 
-    // Update paint property for selected state
-    map.current.setPaintProperty('unclustered-point', 'circle-color', [
+    // Update paint property for selected state - Basic points
+    map.current.setPaintProperty('unclustered-point-basic', 'circle-color', [
       'case',
       ['==', ['get', 'id'], selectedSiteId || -1],
       colors.selected, // red for selected
       colors.point, // theme color for others
     ]);
 
-    map.current.setPaintProperty('unclustered-point', 'circle-radius', [
+    map.current.setPaintProperty('unclustered-point-basic', 'circle-radius', [
       'case',
       ['==', ['get', 'id'], selectedSiteId || -1],
       12, // larger for selected
       8, // normal for others
+    ]);
+
+    // Update paint property for selected state - Premium points
+    map.current.setPaintProperty('unclustered-point-premium', 'circle-color', [
+      'case',
+      ['==', ['get', 'id'], selectedSiteId || -1],
+      colors.selected, // red for selected
+      premiumColor, // gold for others
+    ]);
+
+    map.current.setPaintProperty('unclustered-point-premium', 'circle-radius', [
+      'case',
+      ['==', ['get', 'id'], selectedSiteId || -1],
+      14, // larger for selected
+      10, // normal for premium
+    ]);
+
+    // Hide/show glow for premium when selected
+    map.current.setPaintProperty('unclustered-point-premium-glow', 'circle-opacity', [
+      'case',
+      ['==', ['get', 'id'], selectedSiteId || -1],
+      0, // hide glow when selected
+      0.4, // show glow when not selected
     ]);
   }, [selectedSiteId, mapLoaded, isJackpot]);
 
