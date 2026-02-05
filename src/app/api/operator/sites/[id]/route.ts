@@ -58,7 +58,6 @@ export async function GET(
         zip_code,
         phone,
         website,
-        hours,
         tab_type,
         pull_tab_prices,
         etab_system,
@@ -123,7 +122,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { phone, website, hours, tab_type, pull_tab_prices, etab_system } = body;
+    const { phone, website, tab_type, pull_tab_prices, etab_system } = body;
 
     // Update site details
     await sql`
@@ -131,7 +130,6 @@ export async function PATCH(
       SET
         phone = ${phone || null},
         website = ${website || null},
-        hours = ${hours ? JSON.stringify(hours) : null},
         tab_type = ${tab_type || null},
         pull_tab_prices = ${pull_tab_prices?.length > 0 ? pull_tab_prices : null},
         etab_system = ${etab_system || null},
