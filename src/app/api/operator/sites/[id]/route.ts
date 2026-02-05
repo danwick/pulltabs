@@ -24,20 +24,25 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid site ID' }, { status: 400 });
     }
 
-    // Check if user has a claim on this site
-    const claims = await sql`
-      SELECT sc.status as claim_status
-      FROM site_claims sc
-      WHERE sc.site_id = ${siteId}
-        AND sc.user_id = ${parseInt(session.user.id)}
-        AND sc.status IN ('approved', 'pending')
-    `;
+    // Super admins can edit any site
+    const isSuperAdmin = session.user.role === 'super_admin';
 
-    if (claims.length === 0) {
-      return NextResponse.json(
-        { error: 'You do not have permission to edit this listing' },
-        { status: 403 }
-      );
+    if (!isSuperAdmin) {
+      // Check if user has a claim on this site
+      const claims = await sql`
+        SELECT sc.status as claim_status
+        FROM site_claims sc
+        WHERE sc.site_id = ${siteId}
+          AND sc.user_id = ${parseInt(session.user.id)}
+          AND sc.status IN ('approved', 'pending')
+      `;
+
+      if (claims.length === 0) {
+        return NextResponse.json(
+          { error: 'You do not have permission to edit this listing' },
+          { status: 403 }
+        );
+      }
     }
 
     // Fetch site details
@@ -57,7 +62,8 @@ export async function GET(
         tab_type,
         pull_tab_prices,
         etab_system,
-        listing_status
+        listing_status,
+        photos
       FROM sites
       WHERE site_id = ${siteId}
     `;
@@ -95,20 +101,25 @@ export async function PATCH(
       return NextResponse.json({ error: 'Invalid site ID' }, { status: 400 });
     }
 
-    // Check if user has an approved claim on this site
-    const claims = await sql`
-      SELECT sc.status as claim_status
-      FROM site_claims sc
-      WHERE sc.site_id = ${siteId}
-        AND sc.user_id = ${parseInt(session.user.id)}
-        AND sc.status = 'approved'
-    `;
+    // Super admins can edit any site
+    const isSuperAdmin = session.user.role === 'super_admin';
 
-    if (claims.length === 0) {
-      return NextResponse.json(
-        { error: 'You do not have permission to edit this listing. Your claim may still be pending.' },
-        { status: 403 }
-      );
+    if (!isSuperAdmin) {
+      // Check if user has an approved claim on this site
+      const claims = await sql`
+        SELECT sc.status as claim_status
+        FROM site_claims sc
+        WHERE sc.site_id = ${siteId}
+          AND sc.user_id = ${parseInt(session.user.id)}
+          AND sc.status = 'approved'
+      `;
+
+      if (claims.length === 0) {
+        return NextResponse.json(
+          { error: 'You do not have permission to edit this listing. Your claim may still be pending.' },
+          { status: 403 }
+        );
+      }
     }
 
     const body = await request.json();

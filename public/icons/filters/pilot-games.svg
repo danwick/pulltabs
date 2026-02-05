@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Background circle -->
+  <circle cx="32" cy="32" r="30" fill="#1565C0" stroke="#0D47A1" stroke-width="2"/>
+  <!-- Stylized pilot wing/badge -->
+  <path d="M32 16 L48 32 L32 40 L16 32 Z" fill="#FFD700" stroke="#FFC107" stroke-width="1.5"/>
+  <!-- Center circle (cockpit/emblem) -->
+  <circle cx="32" cy="30" r="6" fill="#0D47A1" stroke="#FFD700" stroke-width="2"/>
+  <!-- Wings extending -->
+  <path d="M20 32 L8 36 L8 28 Z" fill="#BBDEFB"/>
+  <path d="M44 32 L56 36 L56 28 Z" fill="#BBDEFB"/>
+  <!-- Text: PILOT -->
+  <text x="32" y="54" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="10" font-weight="bold" fill="white">PILOT</text>
+</svg>

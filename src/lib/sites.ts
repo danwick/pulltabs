@@ -47,6 +47,7 @@ interface SiteRow {
   tab_type: string | null;
   pull_tab_prices: number[] | null;
   etab_system: string | null;
+  photos: string[] | null;
 }
 
 function rowToSite(row: SiteRow): Site {
@@ -70,7 +71,7 @@ function rowToSite(row: SiteRow): Site {
     phone: row.phone,
     website: row.website,
     hours: null,
-    photos: [],
+    photos: row.photos || [],
     listing_status: (row.listing_status as 'unclaimed' | 'standard' | 'premium') || 'unclaimed',
     is_active: row.is_active ?? true,
     // New fields

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { SlidersHorizontal, X, MapPin } from 'lucide-react';
+import { SlidersHorizontal, X, MapPin, Search } from 'lucide-react';
 import { TabType, EtabSystem, PullTabPrice } from '@/types/site';
 import { useTheme } from '@/contexts/ThemeContext';
 import { FilterState } from './SearchFilters';
@@ -30,6 +30,7 @@ const DISTANCES = [5, 10, 25, 50, 100];
 export default function MobileFilterBar({ onSearch, onLocationRequest, filters }: MobileFilterBarProps) {
   const { isJackpot } = useTheme();
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showSearchBar, setShowSearchBar] = useState(false);
   const [search, setSearch] = useState(filters.search);
   const [tabTypes, setTabTypes] = useState<TabType[]>(filters.tabTypes);
   const [pullTabPrices, setPullTabPrices] = useState<PullTabPrice[]>(filters.pullTabPrices);
@@ -38,6 +39,7 @@ export default function MobileFilterBar({ onSearch, onLocationRequest, filters }
   const [distance, setDistance] = useState(filters.distance);
   const [city, setCity] = useState(filters.city);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Count active filters
   const activeFilterCount = [
@@ -103,32 +105,98 @@ export default function MobileFilterBar({ onSearch, onLocationRequest, filters }
     setDistance(25);
   };
 
+  // Focus search input when search bar opens
+  useEffect(() => {
+    if (showSearchBar && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [showSearchBar]);
+
+  // Close search bar when clicking outside
+  const handleSearchBlur = () => {
+    // Only close if search is empty
+    if (!search) {
+      setTimeout(() => setShowSearchBar(false), 150);
+    }
+  };
+
   return (
     <>
-      {/* Floating filter button */}
-      <div className="absolute top-3 left-3 pt-[env(safe-area-inset-top)] pl-[env(safe-area-inset-left)] z-20">
-        <button
-          onClick={() => setShowDropdown(!showDropdown)}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-lg shadow-lg text-sm font-semibold transition-colors ${
-            showDropdown || activeFilterCount > 0
-              ? isJackpot
-                ? 'bg-yellow-500 text-gray-900'
-                : 'bg-blue-500 text-white'
-              : isJackpot
-                ? 'bg-gray-900 border border-gray-700 text-gray-300'
-                : 'bg-white border border-gray-200 text-gray-700'
-          }`}
-        >
-          <SlidersHorizontal className="w-5 h-5" />
-          <span>Filters</span>
-          {activeFilterCount > 0 && (
-            <span className={`ml-1 px-1.5 py-0.5 rounded text-xs ${
-              isJackpot ? 'bg-gray-900/50 text-yellow-300' : 'bg-blue-600 text-white'
+      {/* Search bar - expands when active */}
+      <div className="absolute top-3 left-3 right-3 pt-[env(safe-area-inset-top)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] z-20">
+        <div className="flex items-center gap-2">
+          {/* Search button / expanded search bar */}
+          {showSearchBar || search ? (
+            <div className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-lg shadow-lg transition-all ${
+              isJackpot
+                ? 'bg-gray-900 border border-gray-700'
+                : 'bg-white border border-gray-200'
             }`}>
-              {activeFilterCount}
-            </span>
+              <Search className={`w-5 h-5 flex-shrink-0 ${isJackpot ? 'text-gray-500' : 'text-gray-400'}`} />
+              <input
+                ref={searchInputRef}
+                type="text"
+                placeholder="Search bar name or city..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onBlur={handleSearchBlur}
+                className={`flex-1 bg-transparent text-sm outline-none ${
+                  isJackpot
+                    ? 'text-white placeholder-gray-500'
+                    : 'text-gray-900 placeholder-gray-400'
+                }`}
+              />
+              {search && (
+                <button
+                  onClick={() => {
+                    setSearch('');
+                    searchInputRef.current?.focus();
+                  }}
+                  className={`p-0.5 rounded ${isJackpot ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
+                  aria-label="Clear search"
+                >
+                  <X className={`w-4 h-4 ${isJackpot ? 'text-gray-500' : 'text-gray-400'}`} />
+                </button>
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowSearchBar(true)}
+              className={`flex items-center gap-2 px-3 py-2.5 rounded-lg shadow-lg text-sm font-semibold transition-colors ${
+                isJackpot
+                  ? 'bg-gray-900 border border-gray-700 text-gray-300'
+                  : 'bg-white border border-gray-200 text-gray-700'
+              }`}
+              aria-label="Search"
+            >
+              <Search className="w-5 h-5" />
+            </button>
           )}
-        </button>
+
+          {/* Filters button */}
+          <button
+            onClick={() => setShowDropdown(!showDropdown)}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg shadow-lg text-sm font-semibold transition-colors flex-shrink-0 ${
+              showDropdown || activeFilterCount > 0
+                ? isJackpot
+                  ? 'bg-yellow-500 text-gray-900'
+                  : 'bg-blue-500 text-white'
+                : isJackpot
+                  ? 'bg-gray-900 border border-gray-700 text-gray-300'
+                  : 'bg-white border border-gray-200 text-gray-700'
+            }`}
+          >
+            <SlidersHorizontal className="w-5 h-5" />
+            <span>Filters</span>
+            {activeFilterCount > 0 && (
+              <span className={`ml-1 px-1.5 py-0.5 rounded text-xs ${
+                isJackpot ? 'bg-gray-900/50 text-yellow-300' : 'bg-blue-600 text-white'
+              }`}>
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Filter dropdown panel */}
@@ -144,9 +212,10 @@ export default function MobileFilterBar({ onSearch, onLocationRequest, filters }
           {/* Dropdown */}
           <div
             ref={dropdownRef}
-            className={`absolute top-16 left-3 right-3 z-30 rounded-xl shadow-xl overflow-hidden ${
+            className={`absolute top-14 left-0 right-0 mx-3 z-30 rounded-xl shadow-xl overflow-hidden ${
               isJackpot ? 'bg-gray-900 border border-gray-700' : 'bg-white border border-gray-200'
             }`}
+            style={{ marginTop: 'calc(env(safe-area-inset-top) + 1rem)' }}
           >
             {/* Header */}
             <div className={`flex items-center justify-between px-4 py-3 border-b ${
@@ -209,7 +278,7 @@ export default function MobileFilterBar({ onSearch, onLocationRequest, filters }
                   <button
                     key={price}
                     onClick={() => togglePrice(price)}
-                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                       pullTabPrices.includes(price)
                         ? 'bg-green-500 text-white'
                         : isJackpot
@@ -217,6 +286,11 @@ export default function MobileFilterBar({ onSearch, onLocationRequest, filters }
                           : 'bg-gray-100 text-gray-700'
                     }`}
                   >
+                    <img
+                      src={`/icons/filters/pulltab-${price}.svg`}
+                      alt=""
+                      className="w-4 h-5 object-contain"
+                    />
                     ${price}
                   </button>
                 ))}
@@ -231,7 +305,7 @@ export default function MobileFilterBar({ onSearch, onLocationRequest, filters }
                   <button
                     key={value}
                     onClick={() => setEtabSystem(etabSystem === value ? '' : value)}
-                    className={`px-2.5 py-1 rounded-full text-xs transition-colors ${
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs transition-colors ${
                       etabSystem === value
                         ? 'bg-purple-500 text-white'
                         : isJackpot
@@ -239,6 +313,11 @@ export default function MobileFilterBar({ onSearch, onLocationRequest, filters }
                           : 'bg-gray-100 text-gray-700'
                     }`}
                   >
+                    <img
+                      src={`/icons/filters/${value === 'pilot' ? 'pilot-games' : '3-diamonds'}.svg`}
+                      alt=""
+                      className="w-5 h-5 object-contain"
+                    />
                     {label}
                   </button>
                 ))}

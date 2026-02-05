@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Background circle -->
+  <circle cx="32" cy="32" r="30" fill="#6A1B9A" stroke="#4A148C" stroke-width="2"/>
+  <!-- Three diamonds arranged -->
+  <!-- Top diamond -->
+  <path d="M32 10 L40 22 L32 34 L24 22 Z" fill="#E1BEE7" stroke="#CE93D8" stroke-width="1"/>
+  <!-- Bottom left diamond -->
+  <path d="M18 28 L26 40 L18 52 L10 40 Z" fill="#E1BEE7" stroke="#CE93D8" stroke-width="1"/>
+  <!-- Bottom right diamond -->
+  <path d="M46 28 L54 40 L46 52 L38 40 Z" fill="#E1BEE7" stroke="#CE93D8" stroke-width="1"/>
+  <!-- Sparkle effects -->
+  <circle cx="32" cy="18" r="2" fill="white" opacity="0.8"/>
+  <circle cx="18" cy="38" r="2" fill="white" opacity="0.8"/>
+  <circle cx="46" cy="38" r="2" fill="white" opacity="0.8"/>
+</svg>

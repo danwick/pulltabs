@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Building2,
   AlertCircle,
+  Shield,
 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 
@@ -109,6 +110,27 @@ export default function DashboardPage() {
             Manage your pull-tab locations from here
           </p>
         </div>
+
+        {/* Admin Link (super_admin only) */}
+        {session?.user?.role === 'super_admin' && (
+          <Link
+            href="/admin"
+            className="flex items-center gap-4 p-4 mb-4 bg-yellow-500/10 border border-yellow-500/30 rounded-xl hover:border-yellow-500/50 transition-colors group"
+          >
+            <div className="w-12 h-12 bg-yellow-500/20 rounded-lg flex items-center justify-center group-hover:bg-yellow-500/30 transition-colors">
+              <Shield className="w-6 h-6 text-yellow-500" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-[var(--theme-text)]">
+                Admin Dashboard
+              </h3>
+              <p className="text-sm text-[var(--theme-text-secondary)]">
+                Manage all sites, add new locations
+              </p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-yellow-500" />
+          </Link>
+        )}
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">

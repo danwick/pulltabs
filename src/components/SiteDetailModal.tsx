@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useCallback } from 'react';
-import { Site, TAB_TYPE_LABELS, ETAB_SYSTEM_LABELS, TabType, EtabSystem } from '@/types/site';
-import { X, MapPin, Navigation, Clock, ExternalLink, Globe, Phone } from 'lucide-react';
+import { Site, SiteHours, TAB_TYPE_LABELS, ETAB_SYSTEM_LABELS, TabType, EtabSystem } from '@/types/site';
+import { X, MapPin, Navigation, Clock, ExternalLink, Globe, Phone, Dice5 } from 'lucide-react';
 import Link from 'next/link';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -183,24 +183,34 @@ function SiteDetailContent({ site, onClose, hasPhotos, showCloseButton, isJackpo
           </div>
         )}
 
-        {/* Hours */}
-        {site.hours && (
-          <div>
-            <h3 className={`text-sm font-semibold mb-2 flex items-center gap-2 ${
-              isJackpot ? 'text-gray-300' : 'text-gray-700'
-            }`}>
-              <Clock className="w-4 h-4" />
-              Hours
-            </h3>
-            <div className={`text-sm space-y-1 ${isJackpot ? 'text-gray-400' : 'text-gray-600'}`}>
-              {site.hours.monday && <p>Mon: {site.hours.monday.open} - {site.hours.monday.close}</p>}
-              {site.hours.tuesday && <p>Tue: {site.hours.tuesday.open} - {site.hours.tuesday.close}</p>}
-              {site.hours.wednesday && <p>Wed: {site.hours.wednesday.open} - {site.hours.wednesday.close}</p>}
-              {site.hours.thursday && <p>Thu: {site.hours.thursday.open} - {site.hours.thursday.close}</p>}
-              {site.hours.friday && <p>Fri: {site.hours.friday.open} - {site.hours.friday.close}</p>}
-              {site.hours.saturday && <p>Sat: {site.hours.saturday.open} - {site.hours.saturday.close}</p>}
-              {site.hours.sunday && <p>Sun: {site.hours.sunday.open} - {site.hours.sunday.close}</p>}
-            </div>
+        {/* Hours - Bar Hours and Gambling Hours */}
+        {(site.bar_hours || site.gambling_hours || site.hours) && (
+          <div className="space-y-4">
+            {/* Bar Hours */}
+            {(site.bar_hours || site.hours) && (
+              <div>
+                <h3 className={`text-sm font-semibold mb-2 flex items-center gap-2 ${
+                  isJackpot ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  <Clock className="w-4 h-4" />
+                  Bar Hours
+                </h3>
+                <HoursDisplay hours={site.bar_hours || site.hours} isJackpot={isJackpot} />
+              </div>
+            )}
+
+            {/* Gambling Hours */}
+            {site.gambling_hours && (
+              <div>
+                <h3 className={`text-sm font-semibold mb-2 flex items-center gap-2 ${
+                  isJackpot ? 'text-yellow-400' : 'text-blue-600'
+                }`}>
+                  <Dice5 className="w-4 h-4" />
+                  Gambling Hours
+                </h3>
+                <HoursDisplay hours={site.gambling_hours} isJackpot={isJackpot} />
+              </div>
+            )}
           </div>
         )}
 
@@ -348,6 +358,35 @@ function SiteDetailContent({ site, onClose, hasPhotos, showCloseButton, isJackpo
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// Helper component to display hours
+function HoursDisplay({ hours, isJackpot }: { hours: SiteHours | null | undefined; isJackpot: boolean }) {
+  if (!hours) return null;
+
+  const days = [
+    { key: 'monday', label: 'Mon' },
+    { key: 'tuesday', label: 'Tue' },
+    { key: 'wednesday', label: 'Wed' },
+    { key: 'thursday', label: 'Thu' },
+    { key: 'friday', label: 'Fri' },
+    { key: 'saturday', label: 'Sat' },
+    { key: 'sunday', label: 'Sun' },
+  ] as const;
+
+  return (
+    <div className={`text-sm space-y-1 ${isJackpot ? 'text-gray-400' : 'text-gray-600'}`}>
+      {days.map(({ key, label }) => {
+        const dayHours = hours[key];
+        if (!dayHours) return null;
+        return (
+          <p key={key}>
+            {label}: {dayHours.open} - {dayHours.close}
+          </p>
+        );
+      })}
     </div>
   );
 }

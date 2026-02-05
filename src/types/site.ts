@@ -18,6 +18,10 @@ export interface Site {
   // Operator-provided fields (null until claimed)
   phone?: string | null;
   website?: string | null;
+  // Hours - two types: bar hours (when establishment is open) and gambling hours (when tabs are available)
+  bar_hours?: SiteHours | null;
+  gambling_hours?: SiteHours | null;
+  /** @deprecated Use bar_hours instead */
   hours?: SiteHours | null;
   photos?: string[];
   listing_status: 'unclaimed' | 'standard' | 'premium';

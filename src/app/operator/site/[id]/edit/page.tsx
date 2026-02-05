@@ -17,7 +17,11 @@ import {
   Loader2,
   CheckCircle,
   AlertCircle,
+  Camera,
+  Sparkles,
+  Lock,
 } from 'lucide-react';
+import PhotoUploader from '@/components/PhotoUploader';
 import {
   Site,
   SiteHours,
@@ -48,6 +52,7 @@ interface FormData {
   tab_type: TabType | '';
   pull_tab_prices: PullTabPrice[];
   etab_system: EtabSystem | '';
+  photos: string[];
 }
 
 export default function EditSitePage() {
@@ -69,6 +74,7 @@ export default function EditSitePage() {
     tab_type: '',
     pull_tab_prices: [],
     etab_system: '',
+    photos: [],
   });
 
   // Redirect to login if not authenticated
@@ -99,6 +105,7 @@ export default function EditSitePage() {
           tab_type: data.site.tab_type || '',
           pull_tab_prices: data.site.pull_tab_prices || [],
           etab_system: data.site.etab_system || '',
+          photos: data.site.photos || [],
         });
       } else if (response.status === 403) {
         setErrorMessage('You do not have permission to edit this listing.');
@@ -209,6 +216,9 @@ export default function EditSitePage() {
 
   if (!site) return null;
 
+  // Check if site has premium tier (either premium status or super admin can access all)
+  const isPremium = site.listing_status === 'premium' || session?.user?.role === 'super_admin';
+
   return (
     <div className="min-h-screen bg-[var(--theme-bg)]">
       {/* Header */}
@@ -269,6 +279,36 @@ export default function EditSitePage() {
             </div>
           </section>
 
+          {/* Photos - Premium only */}
+          {isPremium ? (
+            <section>
+              <h2 className="heading text-lg font-semibold text-[var(--theme-text-primary)] mb-4 flex items-center gap-2">
+                <Camera className="w-5 h-5" />
+                Photos
+                <Sparkles className="w-4 h-4 text-yellow-500" />
+              </h2>
+              <PhotoUploader
+                siteId={parseInt(siteId)}
+                photos={formData.photos}
+                onPhotosChange={(photos) => setFormData({ ...formData, photos })}
+                maxPhotos={5}
+              />
+            </section>
+          ) : (
+            <section className="opacity-60">
+              <h2 className="heading text-lg font-semibold text-[var(--theme-text-primary)] mb-4 flex items-center gap-2">
+                <Camera className="w-5 h-5" />
+                Photos
+                <Lock className="w-4 h-4 text-[var(--theme-text-muted)]" />
+              </h2>
+              <div className="p-4 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl text-center">
+                <p className="text-[var(--theme-text-muted)] text-sm">
+                  Upgrade to Premium to add photos
+                </p>
+              </div>
+            </section>
+          )}
+
           {/* Contact Info */}
           <section>
             <h2 className="heading text-lg font-semibold text-[var(--theme-text-primary)] mb-4">
@@ -304,148 +344,179 @@ export default function EditSitePage() {
             </div>
           </section>
 
-          {/* Hours of Operation */}
-          <section>
-            <h2 className="heading text-lg font-semibold text-[var(--theme-text-primary)] mb-4 flex items-center gap-2">
-              <Clock className="w-5 h-5" />
-              Hours of Operation
-            </h2>
-            <div className="space-y-3">
-              {DAYS_OF_WEEK.map((day) => (
-                <div
-                  key={day}
-                  className="flex items-center gap-3 p-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-lg"
-                >
-                  <span className="w-24 text-sm font-medium text-[var(--theme-text-secondary)] capitalize">
-                    {day}
-                  </span>
-                  <div className="flex-1 flex items-center gap-2">
-                    <input
-                      type="time"
-                      value={formData.hours[day]?.open || ''}
-                      onChange={(e) => handleHoursChange(day, 'open', e.target.value)}
-                      className="flex-1 px-3 py-1.5 bg-[var(--theme-input-bg)] border border-[var(--theme-input-border)] rounded text-sm text-[var(--theme-text-primary)] focus:outline-none focus:border-[var(--theme-input-border-focus)]"
-                    />
-                    <span className="text-[var(--theme-text-muted)]">to</span>
-                    <input
-                      type="time"
-                      value={formData.hours[day]?.close || ''}
-                      onChange={(e) => handleHoursChange(day, 'close', e.target.value)}
-                      className="flex-1 px-3 py-1.5 bg-[var(--theme-input-bg)] border border-[var(--theme-input-border)] rounded text-sm text-[var(--theme-text-primary)] focus:outline-none focus:border-[var(--theme-input-border-focus)]"
-                    />
+          {/* Hours of Operation - Premium only */}
+          {isPremium ? (
+            <section>
+              <h2 className="heading text-lg font-semibold text-[var(--theme-text-primary)] mb-4 flex items-center gap-2">
+                <Clock className="w-5 h-5" />
+                Hours of Operation
+                <Sparkles className="w-4 h-4 text-yellow-500" />
+              </h2>
+              <div className="space-y-3">
+                {DAYS_OF_WEEK.map((day) => (
+                  <div
+                    key={day}
+                    className="flex items-center gap-3 p-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-lg"
+                  >
+                    <span className="w-24 text-sm font-medium text-[var(--theme-text-secondary)] capitalize">
+                      {day}
+                    </span>
+                    <div className="flex-1 flex items-center gap-2">
+                      <input
+                        type="time"
+                        value={formData.hours[day]?.open || ''}
+                        onChange={(e) => handleHoursChange(day, 'open', e.target.value)}
+                        className="flex-1 px-3 py-1.5 bg-[var(--theme-input-bg)] border border-[var(--theme-input-border)] rounded text-sm text-[var(--theme-text-primary)] focus:outline-none focus:border-[var(--theme-input-border-focus)]"
+                      />
+                      <span className="text-[var(--theme-text-muted)]">to</span>
+                      <input
+                        type="time"
+                        value={formData.hours[day]?.close || ''}
+                        onChange={(e) => handleHoursChange(day, 'close', e.target.value)}
+                        className="flex-1 px-3 py-1.5 bg-[var(--theme-input-bg)] border border-[var(--theme-input-border)] rounded text-sm text-[var(--theme-text-primary)] focus:outline-none focus:border-[var(--theme-input-border-focus)]"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleHoursClear(day)}
+                      className="text-xs text-[var(--theme-text-muted)] hover:text-[var(--theme-error)] transition-colors"
+                    >
+                      Closed
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleHoursClear(day)}
-                    className="text-xs text-[var(--theme-text-muted)] hover:text-[var(--theme-error)] transition-colors"
-                  >
-                    Closed
-                  </button>
-                </div>
-              ))}
-            </div>
-          </section>
+                ))}
+              </div>
+            </section>
+          ) : (
+            <section className="opacity-60">
+              <h2 className="heading text-lg font-semibold text-[var(--theme-text-primary)] mb-4 flex items-center gap-2">
+                <Clock className="w-5 h-5" />
+                Hours of Operation
+                <Lock className="w-4 h-4 text-[var(--theme-text-muted)]" />
+              </h2>
+              <div className="p-4 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl text-center">
+                <p className="text-[var(--theme-text-muted)] text-sm">
+                  Upgrade to Premium to add hours of operation
+                </p>
+              </div>
+            </section>
+          )}
 
-          {/* Gambling Details */}
-          <section>
-            <h2 className="heading text-lg font-semibold text-[var(--theme-text-primary)] mb-4">
-              Pull-Tab Details
-            </h2>
-            <div className="space-y-6">
-              {/* Seller Type */}
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-[var(--theme-text-secondary)] mb-3">
-                  <Store className="w-4 h-4" />
-                  Seller Type
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {(Object.keys(TAB_TYPE_LABELS) as TabType[]).map((type) => (
+          {/* Gambling Details - Premium only */}
+          {isPremium ? (
+            <section>
+              <h2 className="heading text-lg font-semibold text-[var(--theme-text-primary)] mb-4 flex items-center gap-2">
+                Pull-Tab Details
+                <Sparkles className="w-4 h-4 text-yellow-500" />
+              </h2>
+              <div className="space-y-6">
+                {/* Seller Type */}
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-medium text-[var(--theme-text-secondary)] mb-3">
+                    <Store className="w-4 h-4" />
+                    Seller Type
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {(Object.keys(TAB_TYPE_LABELS) as TabType[]).map((type) => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() =>
+                          setFormData({
+                            ...formData,
+                            tab_type: formData.tab_type === type ? '' : type,
+                          })
+                        }
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                          formData.tab_type === type
+                            ? 'bg-[var(--theme-accent)] text-[var(--theme-bg)]'
+                            : 'bg-[var(--theme-surface)] text-[var(--theme-text-secondary)] border border-[var(--theme-border)] hover:border-[var(--theme-text-muted)]'
+                        }`}
+                      >
+                        {TAB_TYPE_LABELS[type]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Pull-Tab Prices */}
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-medium text-[var(--theme-text-secondary)] mb-3">
+                    <DollarSign className="w-4 h-4" />
+                    Pull-Tab Prices Available
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {PULL_TAB_PRICES.map((price) => (
+                      <button
+                        key={price}
+                        type="button"
+                        onClick={() => togglePrice(price)}
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                          formData.pull_tab_prices.includes(price)
+                            ? 'bg-[var(--theme-tertiary)] text-white'
+                            : 'bg-[var(--theme-surface)] text-[var(--theme-text-secondary)] border border-[var(--theme-border)] hover:border-[var(--theme-text-muted)]'
+                        }`}
+                      >
+                        ${price}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* E-Tab System */}
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-medium text-[var(--theme-text-secondary)] mb-3">
+                    <Tablet className="w-4 h-4" />
+                    E-Tab System
+                  </label>
+                  <div className="flex flex-wrap gap-2">
                     <button
-                      key={type}
                       type="button"
-                      onClick={() =>
-                        setFormData({
-                          ...formData,
-                          tab_type: formData.tab_type === type ? '' : type,
-                        })
-                      }
+                      onClick={() => setFormData({ ...formData, etab_system: '' })}
                       className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                        formData.tab_type === type
-                          ? 'bg-[var(--theme-accent)] text-[var(--theme-bg)]'
+                        formData.etab_system === ''
+                          ? 'bg-[var(--theme-text-muted)] text-white'
                           : 'bg-[var(--theme-surface)] text-[var(--theme-text-secondary)] border border-[var(--theme-border)] hover:border-[var(--theme-text-muted)]'
                       }`}
                     >
-                      {TAB_TYPE_LABELS[type]}
+                      None
                     </button>
-                  ))}
+                    {(Object.keys(ETAB_SYSTEM_LABELS) as EtabSystem[]).map((system) => (
+                      <button
+                        key={system}
+                        type="button"
+                        onClick={() =>
+                          setFormData({
+                            ...formData,
+                            etab_system: formData.etab_system === system ? '' : system,
+                          })
+                        }
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                          formData.etab_system === system
+                            ? 'bg-[var(--theme-secondary)] text-white'
+                            : 'bg-[var(--theme-surface)] text-[var(--theme-text-secondary)] border border-[var(--theme-border)] hover:border-[var(--theme-text-muted)]'
+                        }`}
+                      >
+                        {ETAB_SYSTEM_LABELS[system]}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
-
-              {/* Pull-Tab Prices */}
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-[var(--theme-text-secondary)] mb-3">
-                  <DollarSign className="w-4 h-4" />
-                  Pull-Tab Prices Available
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {PULL_TAB_PRICES.map((price) => (
-                    <button
-                      key={price}
-                      type="button"
-                      onClick={() => togglePrice(price)}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                        formData.pull_tab_prices.includes(price)
-                          ? 'bg-[var(--theme-tertiary)] text-white'
-                          : 'bg-[var(--theme-surface)] text-[var(--theme-text-secondary)] border border-[var(--theme-border)] hover:border-[var(--theme-text-muted)]'
-                      }`}
-                    >
-                      ${price}
-                    </button>
-                  ))}
-                </div>
+            </section>
+          ) : (
+            <section className="opacity-60">
+              <h2 className="heading text-lg font-semibold text-[var(--theme-text-primary)] mb-4 flex items-center gap-2">
+                Pull-Tab Details
+                <Lock className="w-4 h-4 text-[var(--theme-text-muted)]" />
+              </h2>
+              <div className="p-4 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-xl text-center">
+                <p className="text-[var(--theme-text-muted)] text-sm">
+                  Upgrade to Premium to add pull-tab details
+                </p>
               </div>
-
-              {/* E-Tab System */}
-              <div>
-                <label className="flex items-center gap-2 text-sm font-medium text-[var(--theme-text-secondary)] mb-3">
-                  <Tablet className="w-4 h-4" />
-                  E-Tab System
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, etab_system: '' })}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                      formData.etab_system === ''
-                        ? 'bg-[var(--theme-text-muted)] text-white'
-                        : 'bg-[var(--theme-surface)] text-[var(--theme-text-secondary)] border border-[var(--theme-border)] hover:border-[var(--theme-text-muted)]'
-                    }`}
-                  >
-                    None
-                  </button>
-                  {(Object.keys(ETAB_SYSTEM_LABELS) as EtabSystem[]).map((system) => (
-                    <button
-                      key={system}
-                      type="button"
-                      onClick={() =>
-                        setFormData({
-                          ...formData,
-                          etab_system: formData.etab_system === system ? '' : system,
-                        })
-                      }
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                        formData.etab_system === system
-                          ? 'bg-[var(--theme-secondary)] text-white'
-                          : 'bg-[var(--theme-surface)] text-[var(--theme-text-secondary)] border border-[var(--theme-border)] hover:border-[var(--theme-text-muted)]'
-                      }`}
-                    >
-                      {ETAB_SYSTEM_LABELS[system]}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </section>
+            </section>
+          )}
 
           {/* Save Button (Mobile) */}
           <div className="sticky bottom-4 pt-4">

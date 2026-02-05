@@ -23,7 +23,15 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { siteId, notes } = body;
+    const { siteId, notes, tier = 'standard' } = body;
+
+    // Validate tier
+    if (tier !== 'standard' && tier !== 'premium') {
+      return NextResponse.json(
+        { error: 'Invalid tier. Must be "standard" or "premium".' },
+        { status: 400 }
+      );
+    }
 
     if (!siteId) {
       return NextResponse.json(
@@ -93,27 +101,28 @@ export async function POST(request: NextRequest) {
     const gamblingManagerMatch = userName && gamblingManager &&
       (userName.includes(gamblingManager) || gamblingManager.includes(userName));
 
-    // Create the claim
+    // Create the claim with selected tier
     const claimResult = await sql`
-      INSERT INTO site_claims (site_id, user_id, status, verification_method, gambling_manager_match, notes)
+      INSERT INTO site_claims (site_id, user_id, status, verification_method, gambling_manager_match, notes, tier)
       VALUES (
         ${siteId},
         ${userId},
         ${gamblingManagerMatch ? 'approved' : 'pending'},
         ${gamblingManagerMatch ? 'gambling_manager_match' : 'manual_review'},
         ${gamblingManagerMatch},
-        ${notes || null}
+        ${notes || null},
+        ${tier}
       )
-      RETURNING id, status
+      RETURNING id, status, tier
     `;
 
     const claim = claimResult[0];
 
-    // If auto-approved, update the site's listing status
+    // If auto-approved, update the site's listing status based on tier
     if (gamblingManagerMatch) {
       await sql`
         UPDATE sites
-        SET listing_status = 'standard'
+        SET listing_status = ${tier}
         WHERE site_id = ${siteId}
       `;
     }
@@ -168,9 +177,11 @@ export async function GET() {
         sc.notes,
         sc.requested_at,
         sc.reviewed_at,
+        sc.tier,
         s.site_name,
         s.city,
-        s.street_address
+        s.street_address,
+        s.listing_status
       FROM site_claims sc
       JOIN sites s ON sc.site_id = s.site_id
       WHERE sc.user_id = ${userId}

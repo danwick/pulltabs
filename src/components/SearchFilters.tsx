@@ -257,13 +257,18 @@ export default function SearchFilters({ onSearch, onLocationRequest }: SearchFil
                   <button
                     key={price}
                     onClick={() => togglePrice(price)}
-                    className={`${chipBaseClass} min-w-[60px] flex items-center justify-center gap-1.5 ${
+                    className={`${chipBaseClass} min-w-[70px] flex items-center justify-center gap-2 ${
                       pullTabPrices.includes(price)
                         ? 'bg-emerald-500 text-white border border-emerald-400 shadow-lg shadow-emerald-500/20'
                         : chipUnselectedClass
                     }`}
                   >
                     {pullTabPrices.includes(price) && <Check className="w-3.5 h-3.5" />}
+                    <img
+                      src={`/icons/filters/pulltab-${price}.svg`}
+                      alt=""
+                      className="w-5 h-6 object-contain"
+                    />
                     ${price}
                   </button>
                 ))}
@@ -337,7 +342,12 @@ export default function SearchFilters({ onSearch, onLocationRequest }: SearchFil
                   }`}
                 >
                   {etabSystem === value && <Check className="w-4 h-4" />}
-                  <span className={etabSystem === value ? '' : 'ml-7'}>{label}</span>
+                  <img
+                    src={`/icons/filters/${value === 'pilot' ? 'pilot-games' : '3-diamonds'}.svg`}
+                    alt=""
+                    className={`w-6 h-6 object-contain ${etabSystem === value ? '' : 'ml-7'}`}
+                  />
+                  <span>{label}</span>
                 </button>
               ))}
             </div>

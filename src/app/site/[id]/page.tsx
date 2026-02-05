@@ -1,9 +1,9 @@
 import { getSiteById, getSites } from '@/lib/sites';
-import { MapPin, Clock, Store, DollarSign, Monitor, Camera, Navigation, Gamepad2, Globe, Phone } from 'lucide-react';
+import { MapPin, Clock, Store, DollarSign, Monitor, Camera, Navigation, Gamepad2, Globe, Phone, Dice5 } from 'lucide-react';
 import { notFound } from 'next/navigation';
 import BackButton from '@/components/BackButton';
 import ClaimListingButton from '@/components/ClaimListingButton';
-import { TAB_TYPE_LABELS, ETAB_SYSTEM_LABELS, TabType, EtabSystem } from '@/types/site';
+import { TAB_TYPE_LABELS, ETAB_SYSTEM_LABELS, TabType, EtabSystem, SiteHours } from '@/types/site';
 
 interface SitePageProps {
   params: Promise<{ id: string }>;
@@ -34,7 +34,10 @@ export default async function SitePage({ params }: SitePageProps) {
   const hasPullTabDetails = site.tab_type || (site.pull_tab_prices && site.pull_tab_prices.length > 0);
   const hasEtabDetails = site.etab_system;
   const hasPhotos = site.photos && site.photos.length > 0;
-  const hasHours = site.hours && Object.values(site.hours).some(day => day !== null);
+  const hasBarHours = site.bar_hours && Object.values(site.bar_hours).some(day => day !== null);
+  const hasGamblingHours = site.gambling_hours && Object.values(site.gambling_hours).some(day => day !== null);
+  const hasLegacyHours = site.hours && Object.values(site.hours).some(day => day !== null);
+  const hasHours = hasBarHours || hasGamblingHours || hasLegacyHours;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -92,26 +95,30 @@ export default async function SitePage({ params }: SitePageProps) {
           </div>
         )}
 
-        {/* Hours (operator-provided) */}
-        {hasHours && site.hours && (
-          <div className="bg-white rounded-lg shadow-sm border p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Clock className="w-5 h-5 text-gray-400" />
-              <h2 className="font-semibold text-gray-900">Hours</h2>
-            </div>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              {(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const).map((day) => {
-                const hours = site.hours?.[day];
-                return (
-                  <div key={day} className="flex justify-between">
-                    <span className="text-gray-500 capitalize">{day.slice(0, 3)}</span>
-                    <span className="text-gray-900">
-                      {hours ? `${hours.open} - ${hours.close}` : 'Closed'}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
+        {/* Hours (operator-provided) - Bar Hours and Gambling Hours */}
+        {hasHours && (
+          <div className="bg-white rounded-lg shadow-sm border p-4 space-y-4">
+            {/* Bar Hours */}
+            {(hasBarHours || hasLegacyHours) && (
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Clock className="w-5 h-5 text-gray-400" />
+                  <h2 className="font-semibold text-gray-900">Bar Hours</h2>
+                </div>
+                <HoursGrid hours={site.bar_hours || site.hours} />
+              </div>
+            )}
+
+            {/* Gambling Hours */}
+            {hasGamblingHours && (
+              <div className={hasBarHours || hasLegacyHours ? 'pt-4 border-t border-gray-100' : ''}>
+                <div className="flex items-center gap-2 mb-3">
+                  <Dice5 className="w-5 h-5 text-blue-500" />
+                  <h2 className="font-semibold text-blue-700">Gambling Hours</h2>
+                </div>
+                <HoursGrid hours={site.gambling_hours} />
+              </div>
+            )}
           </div>
         )}
 
@@ -231,6 +238,29 @@ export default async function SitePage({ params }: SitePageProps) {
           <ClaimListingButton siteId={site.site_id} siteName={site.site_name} />
         )}
       </main>
+    </div>
+  );
+}
+
+// Helper component to display hours in a grid
+function HoursGrid({ hours }: { hours: SiteHours | null | undefined }) {
+  if (!hours) return null;
+
+  const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
+
+  return (
+    <div className="grid grid-cols-2 gap-2 text-sm">
+      {days.map((day) => {
+        const dayHours = hours[day];
+        return (
+          <div key={day} className="flex justify-between">
+            <span className="text-gray-500 capitalize">{day.slice(0, 3)}</span>
+            <span className="text-gray-900">
+              {dayHours ? `${dayHours.open} - ${dayHours.close}` : 'Closed'}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }
