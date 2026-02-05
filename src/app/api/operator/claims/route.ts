@@ -58,45 +58,47 @@ export async function POST(request: NextRequest) {
 
     const site = sites[0];
 
-    // Check if user already has a claim for this site
-    const existingClaims = await sql`
-      SELECT id, status
-      FROM site_claims
-      WHERE site_id = ${siteId} AND user_id = ${userId}
-    `;
-
-    if (existingClaims.length > 0) {
-      const existingClaim = existingClaims[0];
-      if (existingClaim.status === 'pending') {
-        return NextResponse.json(
-          { error: 'You already have a pending claim for this site' },
-          { status: 409 }
-        );
-      }
-      if (existingClaim.status === 'approved') {
-        return NextResponse.json(
-          { error: 'You have already claimed this site' },
-          { status: 409 }
-        );
-      }
-    }
-
-    // Check if another user has an approved claim
-    const approvedClaims = await sql`
-      SELECT id
-      FROM site_claims
-      WHERE site_id = ${siteId} AND status = 'approved' AND user_id != ${userId}
-    `;
-
-    if (approvedClaims.length > 0) {
-      return NextResponse.json(
-        { error: 'This site has already been claimed by another user' },
-        { status: 409 }
-      );
-    }
-
-    // Check if user is a super admin (auto-approve)
+    // Check if user is a super admin (can claim any site, even if already claimed)
     const isSuperAdmin = session.user.role === 'super_admin';
+
+    // Check if user already has a claim for this site (super admins bypass this)
+    if (!isSuperAdmin) {
+      const existingClaims = await sql`
+        SELECT id, status
+        FROM site_claims
+        WHERE site_id = ${siteId} AND user_id = ${userId}
+      `;
+
+      if (existingClaims.length > 0) {
+        const existingClaim = existingClaims[0];
+        if (existingClaim.status === 'pending') {
+          return NextResponse.json(
+            { error: 'You already have a pending claim for this site' },
+            { status: 409 }
+          );
+        }
+        if (existingClaim.status === 'approved') {
+          return NextResponse.json(
+            { error: 'You have already claimed this site' },
+            { status: 409 }
+          );
+        }
+      }
+
+      // Check if another user has an approved claim (super admins bypass this)
+      const approvedClaims = await sql`
+        SELECT id
+        FROM site_claims
+        WHERE site_id = ${siteId} AND status = 'approved' AND user_id != ${userId}
+      `;
+
+      if (approvedClaims.length > 0) {
+        return NextResponse.json(
+          { error: 'This site has already been claimed by another user' },
+          { status: 409 }
+        );
+      }
+    }
 
     // Check if user's name matches gambling manager (for auto-approval)
     const userName = session.user.name?.toLowerCase().trim() || '';
