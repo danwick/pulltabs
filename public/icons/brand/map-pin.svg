@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <!-- Glowing gold map pin -->
+  <!-- Outer glow -->
+  <ellipse cx="12" cy="22" rx="4" ry="1.5" fill="#FFD700" opacity="0.3"/>
+  <!-- Pin body -->
+  <path
+    d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"
+    fill="#FFD700"
+  />
+  <!-- Inner circle -->
+  <circle cx="12" cy="9" r="3" fill="#1E3A8A"/>
+  <!-- Shine highlight -->
+  <ellipse cx="10" cy="7" rx="1.5" ry="1" fill="white" opacity="0.4"/>
+</svg>

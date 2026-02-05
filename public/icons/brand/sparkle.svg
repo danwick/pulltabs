@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none">
+  <!-- 4-point magic sparkle -->
+  <path
+    d="M12 0C12 0 12 8 12 12C12 8 12 0 12 0Z"
+    fill="#60A5FA"
+  />
+  <path
+    d="M12 2c0 4.5 0 8 0 10 0-2 0-5.5 0-10z
+       M2 12c4.5 0 8 0 10 0-2 0-5.5 0-10 0z
+       M12 22c0-4.5 0-8 0-10 0 2 0 5.5 0 10z
+       M22 12c-4.5 0-8 0-10 0 2 0 5.5 0 10 0z"
+    fill="#60A5FA"
+  />
+  <ellipse cx="12" cy="2" rx="1.5" ry="2" fill="#60A5FA"/>
+  <ellipse cx="12" cy="22" rx="1.5" ry="2" fill="#60A5FA"/>
+  <ellipse cx="2" cy="12" rx="2" ry="1.5" fill="#60A5FA"/>
+  <ellipse cx="22" cy="12" rx="2" ry="1.5" fill="#60A5FA"/>
+  <circle cx="12" cy="12" r="3" fill="#93C5FD"/>
+</svg>

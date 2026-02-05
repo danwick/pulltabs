@@ -1,10 +1,10 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { MapPin, Search, WifiOff, AlertTriangle, RefreshCw } from 'lucide-react';
+import Image from 'next/image';
 import { useTheme } from '@/contexts/ThemeContext';
 
-type EmptyStateVariant = 'no-results' | 'no-location' | 'error' | 'offline' | 'custom';
+type EmptyStateVariant = 'no-results' | 'no-location' | 'error' | 'offline' | 'welcome' | 'custom';
 
 interface EmptyStateProps {
   variant?: EmptyStateVariant;
@@ -18,18 +18,12 @@ interface EmptyStateProps {
   className?: string;
 }
 
-const variantIcons: Record<Exclude<EmptyStateVariant, 'custom'>, typeof Search> = {
-  'no-results': Search,
-  'no-location': MapPin,
-  'error': AlertTriangle,
-  'offline': WifiOff,
-};
-
-const variantEmoji: Record<Exclude<EmptyStateVariant, 'custom'>, string> = {
-  'no-results': '🎰',
-  'no-location': '📍',
-  'error': '⚠️',
-  'offline': '📡',
+const variantImages: Record<Exclude<EmptyStateVariant, 'custom'>, string> = {
+  'no-results': '/illustrations/no-results.png',
+  'no-location': '/illustrations/no-location.png',
+  'error': '/illustrations/error.png',
+  'offline': '/illustrations/offline.png',
+  'welcome': '/illustrations/welcome.png',
 };
 
 export default function EmptyState({
@@ -42,39 +36,36 @@ export default function EmptyState({
 }: EmptyStateProps) {
   const { isJackpot } = useTheme();
 
-  // Determine which icon to show
-  let IconComponent: typeof Search | null = null;
-  let emoji: string | null = null;
-
-  if (icon) {
-    // Custom icon provided - use it directly
-  } else if (variant !== 'custom') {
-    IconComponent = variantIcons[variant];
-    emoji = variantEmoji[variant];
-  }
+  // Get the illustration image for this variant
+  const illustrationSrc = variant !== 'custom' ? variantImages[variant] : null;
 
   return (
-    <div className={`flex flex-col items-center justify-center py-16 px-6 text-center ${className}`}>
-      {/* Icon/Illustration */}
-      <div
-        className="w-32 h-32 mb-6 rounded-2xl flex items-center justify-center"
-        style={{ background: 'var(--theme-accent-light)' }}
-      >
+    <div className={`flex flex-col items-center justify-center py-12 px-6 text-center ${className}`}>
+      {/* Illustration */}
+      <div className="w-48 h-48 mb-6 flex items-center justify-center">
         {icon ? (
-          icon
-        ) : IconComponent ? (
-          <IconComponent
-            className="w-12 h-12"
-            style={{
-              color: variant === 'error' ? 'var(--theme-error)' : 'var(--theme-accent)',
-            }}
+          <div
+            className="w-32 h-32 rounded-2xl flex items-center justify-center"
+            style={{ background: 'var(--theme-accent-light)' }}
+          >
+            {icon}
+          </div>
+        ) : illustrationSrc ? (
+          <Image
+            src={illustrationSrc}
+            alt={title}
+            width={192}
+            height={192}
+            className="object-contain"
+            priority
           />
-        ) : emoji ? (
-          <span className="text-4xl" style={{ color: 'var(--theme-accent)' }}>
-            {emoji}
-          </span>
         ) : (
-          <span className="text-4xl" style={{ color: 'var(--theme-accent)' }}>✨</span>
+          <div
+            className="w-32 h-32 rounded-2xl flex items-center justify-center"
+            style={{ background: 'var(--theme-accent-light)' }}
+          >
+            <span className="text-4xl" style={{ color: 'var(--theme-accent)' }}>✨</span>
+          </div>
         )}
       </div>
 
@@ -156,6 +147,17 @@ export function OfflineState({ onRetry }: { onRetry?: () => void }) {
       title="You're offline"
       description="Check your internet connection and try again."
       action={onRetry ? { label: 'Retry', onClick: onRetry } : undefined}
+    />
+  );
+}
+
+export function WelcomeState({ onGetStarted }: { onGetStarted?: () => void }) {
+  return (
+    <EmptyState
+      variant="welcome"
+      title="Welcome to Pulltab Magic"
+      description="Discover pull-tab locations near you. Enable location or browse the map to get started."
+      action={onGetStarted ? { label: 'Get Started', onClick: onGetStarted } : undefined}
     />
   );
 }

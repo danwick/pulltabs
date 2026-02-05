@@ -1,5 +1,25 @@
 import type { Preview } from '@storybook/nextjs-vite'
+import { useEffect } from 'react'
+import { ThemeProvider } from '../src/contexts/ThemeContext'
 import '../src/app/globals.css'
+
+// Decorator component that syncs Storybook toolbar with CSS class
+function ThemeWrapper({ theme, children }: { theme: string; children: React.ReactNode }) {
+  useEffect(() => {
+    // Force the class after ThemeProvider mounts
+    const root = document.documentElement;
+    if (theme === 'jackpot') {
+      root.classList.add('jackpot-mode');
+    } else {
+      root.classList.remove('jackpot-mode');
+    }
+
+    // Also set localStorage so ThemeProvider picks it up
+    localStorage.setItem('pulltab-theme', theme);
+  }, [theme]);
+
+  return <>{children}</>;
+}
 
 const preview: Preview = {
   parameters: {
@@ -12,15 +32,12 @@ const preview: Preview = {
     backgrounds: {
       default: 'dark',
       values: [
-        { name: 'dark', value: '#0A0A0A' },
+        { name: 'dark', value: '#09090b' },
         { name: 'light', value: '#F9FAFB' },
-        { name: 'surface', value: '#1A1A1A' },
+        { name: 'surface', value: '#18181b' },
       ],
     },
     a11y: {
-      // 'todo' - show a11y violations in the test UI only
-      // 'error' - fail CI on a11y violations
-      // 'off' - skip a11y checks entirely
       test: 'todo'
     }
   },
@@ -43,23 +60,18 @@ const preview: Preview = {
     (Story, context) => {
       const theme = context.globals.theme || 'jackpot';
 
-      // Apply theme class to document root
-      if (typeof document !== 'undefined') {
-        if (theme === 'jackpot') {
-          document.documentElement.classList.add('jackpot-mode');
-        } else {
-          document.documentElement.classList.remove('jackpot-mode');
-        }
-      }
-
       return (
-        <div style={{
-          background: theme === 'jackpot' ? '#0A0A0A' : '#F9FAFB',
-          padding: '1rem',
-          minHeight: '100vh',
-        }}>
-          <Story />
-        </div>
+        <ThemeProvider>
+          <ThemeWrapper theme={theme}>
+            <div style={{
+              background: theme === 'jackpot' ? '#09090b' : '#F9FAFB',
+              padding: '1rem',
+              minHeight: '100vh',
+            }}>
+              <Story />
+            </div>
+          </ThemeWrapper>
+        </ThemeProvider>
       );
     },
   ],
