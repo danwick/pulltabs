@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import Link from 'next/link';
 import { Site } from '@/types/site';
 import Map, { MapBounds } from '@/components/Map';
 import SiteList from '@/components/SiteList';
@@ -11,11 +13,13 @@ import MobileFilterBar from '@/components/MobileFilterBar';
 import ThemeToggle from '@/components/ThemeToggle';
 import { useTheme } from '@/contexts/ThemeContext';
 import Image from 'next/image';
+import { User, LayoutDashboard } from 'lucide-react';
 
 // Wrap the main content in a component that can use searchParams
 function HomeContent() {
   const searchParams = useSearchParams();
   const { isJackpot } = useTheme();
+  const { data: session, status } = useSession();
 
   const [sites, setSites] = useState<Site[]>([]);
   const [loading, setLoading] = useState(true);
@@ -253,9 +257,39 @@ function HomeContent() {
             </span>
           </h1>
         </a>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 md:gap-4">
           <ThemeToggle />
-          <div className={`flex items-center gap-1.5 text-sm ${isJackpot ? 'text-yellow-400/70' : 'text-gray-500'}`}>
+
+          {/* Auth Navigation */}
+          {status === 'loading' ? (
+            <div className={`w-20 h-8 rounded-lg animate-pulse ${isJackpot ? 'bg-gray-800' : 'bg-gray-100'}`} />
+          ) : session ? (
+            <Link
+              href="/operator/dashboard"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                isJackpot
+                  ? 'bg-yellow-400/10 text-yellow-400 hover:bg-yellow-400/20'
+                  : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+              }`}
+            >
+              <LayoutDashboard className="w-4 h-4" />
+              <span className="hidden sm:inline">Dashboard</span>
+            </Link>
+          ) : (
+            <Link
+              href="/operator/login"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                isJackpot
+                  ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <User className="w-4 h-4" />
+              <span className="hidden sm:inline">Sign In</span>
+            </Link>
+          )}
+
+          <div className={`hidden md:flex items-center gap-1.5 text-sm ${isJackpot ? 'text-yellow-400/70' : 'text-gray-500'}`}>
             <Image
               src="/icons/brand/map-pin.svg"
               alt=""

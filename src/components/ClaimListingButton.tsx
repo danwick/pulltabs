@@ -64,7 +64,9 @@ export default function ClaimListingButton({ siteId, siteName }: ClaimListingBut
     autoApproved?: boolean;
   } | null>(null);
 
-  const handleClaimClick = () => {
+  const isSuperAdmin = session?.user?.role === 'super_admin';
+
+  const handleClaimClick = async () => {
     // If not logged in, redirect to signup with callback
     if (status !== 'authenticated') {
       const callbackUrl = encodeURIComponent(`/site/${siteId}?claim=true`);
@@ -72,7 +74,37 @@ export default function ClaimListingButton({ siteId, siteName }: ClaimListingBut
       return;
     }
 
-    // Show tier selection modal
+    // Super admins claim instantly with premium tier, no modal needed
+    if (isSuperAdmin) {
+      setIsLoading(true);
+      try {
+        const response = await fetch('/api/operator/claims', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ siteId, tier: 'premium' }),
+        });
+        const data = await response.json();
+        if (response.ok) {
+          setResult({
+            success: true,
+            message: 'Claimed! You can now edit this listing.',
+            autoApproved: true,
+          });
+          setTimeout(() => {
+            router.push(`/operator/site/${siteId}/edit`);
+          }, 1500);
+        } else {
+          setResult({ success: false, message: data.error || 'Failed to claim' });
+        }
+      } catch {
+        setResult({ success: false, message: 'An error occurred' });
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+
+    // Show tier selection modal for regular users
     setShowTierModal(true);
   };
 
@@ -184,7 +216,16 @@ export default function ClaimListingButton({ siteId, siteName }: ClaimListingBut
             disabled={isLoading}
             className="bg-white text-blue-600 px-6 py-2.5 rounded-lg font-medium hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            {status === 'authenticated' ? 'Claim This Listing' : 'Sign Up to Claim'}
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Claiming...
+              </>
+            ) : status === 'authenticated' ? (
+              isSuperAdmin ? 'Claim & Edit Now' : 'Claim This Listing'
+            ) : (
+              'Sign Up to Claim'
+            )}
           </button>
         )}
 

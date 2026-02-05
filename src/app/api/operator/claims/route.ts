@@ -95,11 +95,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if user is a super admin (auto-approve)
+    const isSuperAdmin = session.user.role === 'super_admin';
+
     // Check if user's name matches gambling manager (for auto-approval)
     const userName = session.user.name?.toLowerCase().trim() || '';
     const gamblingManager = (site.gambling_manager as string || '').toLowerCase().trim();
     const gamblingManagerMatch = userName && gamblingManager &&
       (userName.includes(gamblingManager) || gamblingManager.includes(userName));
+
+    // Auto-approve for super admins or gambling manager match
+    const shouldAutoApprove = isSuperAdmin || gamblingManagerMatch;
+    const verificationMethod = isSuperAdmin ? 'super_admin' : (gamblingManagerMatch ? 'gambling_manager_match' : 'manual_review');
 
     // Create the claim with selected tier
     const claimResult = await sql`
@@ -107,8 +114,8 @@ export async function POST(request: NextRequest) {
       VALUES (
         ${siteId},
         ${userId},
-        ${gamblingManagerMatch ? 'approved' : 'pending'},
-        ${gamblingManagerMatch ? 'gambling_manager_match' : 'manual_review'},
+        ${shouldAutoApprove ? 'approved' : 'pending'},
+        ${verificationMethod},
         ${gamblingManagerMatch},
         ${notes || null},
         ${tier}
@@ -119,7 +126,7 @@ export async function POST(request: NextRequest) {
     const claim = claimResult[0];
 
     // If auto-approved, update the site's listing status based on tier
-    if (gamblingManagerMatch) {
+    if (shouldAutoApprove) {
       await sql`
         UPDATE sites
         SET listing_status = ${tier}
@@ -127,14 +134,20 @@ export async function POST(request: NextRequest) {
       `;
     }
 
+    // Custom message based on approval reason
+    let message = 'Claim submitted for review. We will verify your ownership and get back to you.';
+    if (isSuperAdmin) {
+      message = 'Claim approved! You can now edit this listing.';
+    } else if (gamblingManagerMatch) {
+      message = 'Claim approved! Your name matches the gambling manager on file.';
+    }
+
     return NextResponse.json({
-      message: gamblingManagerMatch
-        ? 'Claim approved! Your name matches the gambling manager on file.'
-        : 'Claim submitted for review. We will verify your ownership and get back to you.',
+      message,
       claim: {
         id: claim.id,
         status: claim.status,
-        autoApproved: gamblingManagerMatch,
+        autoApproved: shouldAutoApprove,
       },
     }, { status: 201 });
   } catch (error) {
