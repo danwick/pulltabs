@@ -125,9 +125,36 @@ export default function MobileFilterBar({ onSearch, onLocationRequest, filters }
       {/* Search bar - expands when active */}
       <div className="absolute top-3 left-3 right-3 pt-[env(safe-area-inset-top)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] z-20">
         <div className="flex items-center gap-2">
-          {/* Search button / expanded search bar */}
+          {/* Filters button - on the left */}
+          <button
+            onClick={() => setShowDropdown(!showDropdown)}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg shadow-lg text-sm font-semibold transition-colors flex-shrink-0 ${
+              showDropdown || activeFilterCount > 0
+                ? isJackpot
+                  ? 'bg-yellow-500 text-gray-900'
+                  : 'bg-blue-500 text-white'
+                : isJackpot
+                  ? 'bg-gray-900 border border-gray-700 text-gray-300'
+                  : 'bg-white border border-gray-200 text-gray-700'
+            }`}
+          >
+            <SlidersHorizontal className="w-5 h-5" />
+            <span>Filters</span>
+            {activeFilterCount > 0 && (
+              <span className={`ml-1 px-1.5 py-0.5 rounded text-xs ${
+                isJackpot ? 'bg-gray-900/50 text-yellow-300' : 'bg-blue-600 text-white'
+              }`}>
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+
+          {/* Spacer */}
+          <div className="flex-1" />
+
+          {/* Search button / expanded search bar - on the right */}
           {showSearchBar || search ? (
-            <div className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-lg shadow-lg transition-all ${
+            <div className={`flex-1 max-w-xs flex items-center gap-2 px-3 py-2 rounded-lg shadow-lg transition-all ${
               isJackpot
                 ? 'bg-gray-900 border border-gray-700'
                 : 'bg-white border border-gray-200'
@@ -172,30 +199,6 @@ export default function MobileFilterBar({ onSearch, onLocationRequest, filters }
               <Search className="w-5 h-5" />
             </button>
           )}
-
-          {/* Filters button */}
-          <button
-            onClick={() => setShowDropdown(!showDropdown)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg shadow-lg text-sm font-semibold transition-colors flex-shrink-0 ${
-              showDropdown || activeFilterCount > 0
-                ? isJackpot
-                  ? 'bg-yellow-500 text-gray-900'
-                  : 'bg-blue-500 text-white'
-                : isJackpot
-                  ? 'bg-gray-900 border border-gray-700 text-gray-300'
-                  : 'bg-white border border-gray-200 text-gray-700'
-            }`}
-          >
-            <SlidersHorizontal className="w-5 h-5" />
-            <span>Filters</span>
-            {activeFilterCount > 0 && (
-              <span className={`ml-1 px-1.5 py-0.5 rounded text-xs ${
-                isJackpot ? 'bg-gray-900/50 text-yellow-300' : 'bg-blue-600 text-white'
-              }`}>
-                {activeFilterCount}
-              </span>
-            )}
-          </button>
         </div>
       </div>
 

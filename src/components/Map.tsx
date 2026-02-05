@@ -130,7 +130,7 @@ function MapComponent({
       zoom: zoom,
     });
 
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+    map.current.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
 
     // Helper to emit bounds
     const emitBounds = () => {
