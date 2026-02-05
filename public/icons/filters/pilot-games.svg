@@ -1,13 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
-  <!-- Background circle -->
-  <circle cx="32" cy="32" r="30" fill="#1565C0" stroke="#0D47A1" stroke-width="2"/>
-  <!-- Stylized pilot wing/badge -->
-  <path d="M32 16 L48 32 L32 40 L16 32 Z" fill="#FFD700" stroke="#FFC107" stroke-width="1.5"/>
-  <!-- Center circle (cockpit/emblem) -->
-  <circle cx="32" cy="30" r="6" fill="#0D47A1" stroke="#FFD700" stroke-width="2"/>
-  <!-- Wings extending -->
-  <path d="M20 32 L8 36 L8 28 Z" fill="#BBDEFB"/>
-  <path d="M44 32 L56 36 L56 28 Z" fill="#BBDEFB"/>
-  <!-- Text: PILOT -->
-  <text x="32" y="54" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="10" font-weight="bold" fill="white">PILOT</text>
+  <!-- Outer blue ring -->
+  <circle cx="32" cy="32" r="30" fill="#2563EB" stroke="#1D4ED8" stroke-width="2"/>
+  <!-- White ring -->
+  <circle cx="32" cy="32" r="24" fill="white"/>
+  <!-- Inner blue ring -->
+  <circle cx="32" cy="32" r="21" fill="#2563EB"/>
+  <!-- Dark center -->
+  <circle cx="32" cy="32" r="18" fill="#1a1a1a"/>
+  <!-- Stylized P logo in yellow/gold with multiple strokes -->
+  <g stroke="#FFD700" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Outer P -->
+    <path d="M24 46 L24 20 L38 20 Q46 20 46 28 Q46 36 38 36 L24 36"/>
+    <!-- Inner P stroke -->
+    <path d="M27 43 L27 23 L36 23 Q42 23 42 28 Q42 33 36 33 L27 33" stroke-width="2" opacity="0.7"/>
+  </g>
 </svg>
