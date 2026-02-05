@@ -5,6 +5,7 @@ import { Site, SiteHours, TAB_TYPE_LABELS, ETAB_SYSTEM_LABELS, TabType, EtabSyst
 import { X, MapPin, Navigation, Clock, ExternalLink, Globe, Phone, Dice5 } from 'lucide-react';
 import Link from 'next/link';
 import { useTheme } from '@/contexts/ThemeContext';
+import ClaimListingButton from './ClaimListingButton';
 
 interface SiteDetailModalProps {
   site: Site | null;
@@ -337,28 +338,7 @@ function SiteDetailContent({ site, onClose, hasPhotos, showCloseButton, isJackpo
 
         {/* Claim CTA */}
         {site.listing_status === 'unclaimed' && (
-          <div className={`rounded-lg p-4 mt-6 ${
-            isJackpot
-              ? 'bg-yellow-500/10 border border-yellow-500/30'
-              : 'bg-blue-50 border border-blue-200'
-          }`}>
-            <p className={`font-semibold mb-2 ${isJackpot ? 'text-white' : 'text-gray-900'}`}>
-              Is this your location?
-            </p>
-            <p className={`text-sm mb-3 ${isJackpot ? 'text-gray-400' : 'text-gray-600'}`}>
-              Claim this listing to add hours, photos, and keep your information up to date.
-            </p>
-            <Link
-              href={`/site/${site.site_id}?claim=true`}
-              className={`block w-full px-6 py-3 rounded-lg font-medium text-center transition-colors ${
-                isJackpot
-                  ? 'bg-yellow-500 text-gray-900 hover:bg-yellow-400'
-                  : 'bg-blue-500 text-white hover:bg-blue-600'
-              }`}
-            >
-              Claim This Listing
-            </Link>
-          </div>
+          <ClaimListingButton siteId={site.site_id} siteName={site.site_name} />
         )}
       </div>
     </div>
