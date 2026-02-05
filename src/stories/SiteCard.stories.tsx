@@ -13,12 +13,15 @@ const baseSite: Site = {
   city: 'Minneapolis',
   state: 'MN',
   zip_code: '55401',
+  full_address: '1234 Main Street, Minneapolis, MN 55401',
   latitude: 44.9778,
   longitude: -93.2650,
   license_number: 'G-12345',
   gambling_types_inferred: 'Pull-Tabs, E-Tabs, Bingo',
   gross_receipts: 500000,
   net_receipts: 75000,
+  fiscal_year: '2025',
+  is_active: true,
   listing_status: 'unclaimed',
 };
 

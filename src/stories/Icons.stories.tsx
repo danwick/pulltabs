@@ -21,7 +21,14 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 
-const iconCategories = {
+type IconItem = {
+  Icon: React.ComponentType<{ className?: string }>;
+  name: string;
+  usage: string;
+  spin?: boolean;
+};
+
+const iconCategories: Record<string, IconItem[]> = {
   'Navigation & Actions': [
     { Icon: Search, name: 'Search', usage: 'Search input icon' },
     { Icon: X, name: 'X', usage: 'Close buttons, clear filters' },
