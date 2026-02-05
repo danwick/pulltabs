@@ -273,7 +273,7 @@ export default function MobileFilterBar({ onSearch, onLocationRequest, filters }
               </div>
 
               {/* Row 2: Prices */}
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <span className={`text-xs font-medium w-20 flex-shrink-0 ${isJackpot ? 'text-gray-400' : 'text-gray-500'}`}>
                   Prices
                 </span>
@@ -281,7 +281,7 @@ export default function MobileFilterBar({ onSearch, onLocationRequest, filters }
                   <button
                     key={price}
                     onClick={() => togglePrice(price)}
-                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                    className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium transition-colors ${
                       pullTabPrices.includes(price)
                         ? 'bg-green-500 text-white'
                         : isJackpot
@@ -292,7 +292,7 @@ export default function MobileFilterBar({ onSearch, onLocationRequest, filters }
                     <img
                       src={`/icons/filters/pulltab-${price}.svg`}
                       alt=""
-                      className="w-4 h-5 object-contain"
+                      className="w-3.5 h-4 object-contain"
                     />
                     ${price}
                   </button>
