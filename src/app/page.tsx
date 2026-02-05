@@ -219,7 +219,16 @@ function HomeContent() {
         }`}
         style={isJackpot ? { background: 'var(--theme-header-bg)' } : {}}
       >
-        <div className="flex items-center gap-2">
+        <a
+          href="/"
+          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+          onClick={(e) => {
+            e.preventDefault();
+            // Reset to default view
+            window.history.replaceState(null, '', '/');
+            window.location.reload();
+          }}
+        >
           <Image
             src="/icons/brand/sparkle.svg"
             alt=""
@@ -243,7 +252,7 @@ function HomeContent() {
               Magic
             </span>
           </h1>
-        </div>
+        </a>
         <div className="flex items-center gap-4">
           <ThemeToggle />
           <div className={`flex items-center gap-1.5 text-sm ${isJackpot ? 'text-yellow-400/70' : 'text-gray-500'}`}>
