@@ -348,13 +348,16 @@ function SiteDetailContent({ site, onClose, hasPhotos, showCloseButton, isJackpo
             <p className={`text-sm mb-3 ${isJackpot ? 'text-gray-400' : 'text-gray-600'}`}>
               Claim this listing to add hours, photos, and keep your information up to date.
             </p>
-            <button className={`w-full px-6 py-3 rounded-lg font-medium transition-colors ${
-              isJackpot
-                ? 'bg-yellow-500 text-gray-900 hover:bg-yellow-400'
-                : 'bg-blue-500 text-white hover:bg-blue-600'
-            }`}>
+            <Link
+              href={`/site/${site.site_id}?claim=true`}
+              className={`block w-full px-6 py-3 rounded-lg font-medium text-center transition-colors ${
+                isJackpot
+                  ? 'bg-yellow-500 text-gray-900 hover:bg-yellow-400'
+                  : 'bg-blue-500 text-white hover:bg-blue-600'
+              }`}
+            >
               Claim This Listing
-            </button>
+            </Link>
           </div>
         )}
       </div>
