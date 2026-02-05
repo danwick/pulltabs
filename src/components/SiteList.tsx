@@ -3,6 +3,7 @@
 import { memo, useEffect, useRef } from 'react';
 import { Site } from '@/types/site';
 import SiteCard from './SiteCard';
+import { NoResultsState } from './EmptyState';
 import { useTheme } from '@/contexts/ThemeContext';
 
 interface SiteListProps {
@@ -42,12 +43,7 @@ function SiteListComponent({
   }
 
   if (sites.length === 0) {
-    return (
-      <div className={`flex flex-col items-center justify-center h-64 ${isJackpot ? 'text-gray-500' : 'text-gray-500'}`}>
-        <p className="text-lg font-medium">No sites found</p>
-        <p className="text-sm">Try adjusting your search or filters</p>
-      </div>
-    );
+    return <NoResultsState />;
   }
 
   return (
