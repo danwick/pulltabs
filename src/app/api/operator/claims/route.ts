@@ -44,9 +44,9 @@ export async function POST(request: NextRequest) {
 
     // Check if site exists
     const sites = await sql`
-      SELECT site_id, site_name, gambling_manager
+      SELECT id, site_name, gambling_manager
       FROM sites
-      WHERE site_id = ${siteId}
+      WHERE id = ${siteId}
     `;
 
     if (sites.length === 0) {
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
       await sql`
         UPDATE sites
         SET listing_status = ${tier}
-        WHERE site_id = ${siteId}
+        WHERE id = ${siteId}
       `;
     }
 
@@ -183,7 +183,7 @@ export async function GET() {
         s.street_address,
         s.listing_status
       FROM site_claims sc
-      JOIN sites s ON sc.site_id = s.site_id
+      JOIN sites s ON sc.site_id = s.id
       WHERE sc.user_id = ${userId}
       ORDER BY sc.requested_at DESC
     `;
