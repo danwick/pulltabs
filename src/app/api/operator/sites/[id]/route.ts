@@ -48,7 +48,7 @@ export async function GET(
     // Fetch site details
     const sites = await sql`
       SELECT
-        site_id,
+        id as site_id,
         site_name,
         organization_name,
         gambling_manager,
@@ -65,7 +65,7 @@ export async function GET(
         listing_status,
         photos
       FROM sites
-      WHERE site_id = ${siteId}
+      WHERE id = ${siteId}
     `;
 
     if (sites.length === 0) {
@@ -136,7 +136,7 @@ export async function PATCH(
         pull_tab_prices = ${pull_tab_prices?.length > 0 ? pull_tab_prices : null},
         etab_system = ${etab_system || null},
         updated_at = NOW()
-      WHERE site_id = ${siteId}
+      WHERE id = ${siteId}
     `;
 
     return NextResponse.json({ success: true });
