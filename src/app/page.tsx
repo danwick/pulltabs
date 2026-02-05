@@ -10,6 +10,7 @@ import SiteDetailModal from '@/components/SiteDetailModal';
 import MobileFilterBar from '@/components/MobileFilterBar';
 import ThemeToggle from '@/components/ThemeToggle';
 import { useTheme } from '@/contexts/ThemeContext';
+import Image from 'next/image';
 
 // Wrap the main content in a component that can use searchParams
 function HomeContent() {
@@ -218,7 +219,14 @@ function HomeContent() {
         }`}
         style={isJackpot ? { background: 'var(--theme-header-bg)' } : {}}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <Image
+            src="/icons/brand/sparkle.svg"
+            alt=""
+            width={24}
+            height={24}
+            className={isJackpot ? '' : 'opacity-70'}
+          />
           <h1 className="text-balance transition-colors">
             <span
               className={`logo-brand text-2xl transition-colors ${
@@ -238,7 +246,14 @@ function HomeContent() {
         </div>
         <div className="flex items-center gap-4">
           <ThemeToggle />
-          <div className={`text-sm ${isJackpot ? 'text-yellow-400/70' : 'text-gray-500'}`}>
+          <div className={`flex items-center gap-1.5 text-sm ${isJackpot ? 'text-yellow-400/70' : 'text-gray-500'}`}>
+            <Image
+              src="/icons/brand/map-pin.svg"
+              alt=""
+              width={16}
+              height={16}
+              className={isJackpot ? '' : 'opacity-60'}
+            />
             {sites.length} locations
           </div>
         </div>

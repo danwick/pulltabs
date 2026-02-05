@@ -3,6 +3,7 @@
 import { Site, TAB_TYPE_LABELS, ETAB_SYSTEM_LABELS, TabType, EtabSystem } from '@/types/site';
 import { MapPin, Clock, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useTheme } from '@/contexts/ThemeContext';
 
 interface SiteCardProps {
@@ -36,9 +37,10 @@ export default function SiteCard({ site, isSelected, onClick }: SiteCardProps) {
           {site.site_name}
         </h3>
         {site.listing_status === 'premium' && (
-          <span className={`text-condensed text-[10px] px-2 py-0.5 rounded-full flex-shrink-0 ml-2 ${
+          <span className={`text-condensed text-[10px] px-2 py-0.5 rounded-full flex-shrink-0 ml-2 flex items-center gap-1 ${
             isJackpot ? 'bg-yellow-500/20 text-yellow-400' : 'bg-yellow-100 text-yellow-800'
           }`}>
+            <Image src="/icons/brand/star.svg" alt="" width={12} height={12} />
             Premium
           </span>
         )}

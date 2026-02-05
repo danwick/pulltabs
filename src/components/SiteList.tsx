@@ -1,6 +1,7 @@
 'use client';
 
 import { memo, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { Site } from '@/types/site';
 import SiteCard from './SiteCard';
 import { NoResultsState } from './EmptyState';
@@ -32,12 +33,17 @@ function SiteListComponent({
 
   if (loading) {
     return (
-      <div className="space-y-4 p-4">
-        {[...Array(5)].map((_, i) => (
-          <div key={i} className="animate-pulse">
-            <div className={`h-32 rounded-lg ${isJackpot ? 'bg-gray-800' : 'bg-gray-200'}`}></div>
-          </div>
-        ))}
+      <div className="flex flex-col items-center justify-center py-16 px-6">
+        <Image
+          src="/icons/brand/sparkle.svg"
+          alt="Loading"
+          width={48}
+          height={48}
+          className="animate-pulse mb-4"
+        />
+        <p className={`text-sm ${isJackpot ? 'text-gray-400' : 'text-gray-500'}`}>
+          Finding locations...
+        </p>
       </div>
     );
   }
