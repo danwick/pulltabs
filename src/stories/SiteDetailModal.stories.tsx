@@ -1,105 +1,67 @@
-'use client';
-
-import { useEffect, useCallback } from 'react';
-import { Site, TAB_TYPE_LABELS, ETAB_SYSTEM_LABELS, TabType, EtabSystem } from '@/types/site';
+import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 import { X, MapPin, Navigation, Clock, ExternalLink, Globe, Phone } from 'lucide-react';
-import Link from 'next/link';
-import { useTheme } from '@/contexts/ThemeContext';
+import { Site, TAB_TYPE_LABELS, ETAB_SYSTEM_LABELS, TabType, EtabSystem } from '../types/site';
 
-interface SiteDetailModalProps {
-  site: Site | null;
-  onClose: () => void;
-}
+// Mock sites
+const unclaimedSite: Site = {
+  site_id: 1,
+  site_name: "Jimmy's Bar & Grill",
+  organization_name: 'Minneapolis VFW Post 246',
+  gambling_manager: 'John Smith',
+  street_address: '1234 Main Street',
+  city: 'Minneapolis',
+  state: 'MN',
+  zip_code: '55401',
+  latitude: 44.9778,
+  longitude: -93.2650,
+  license_number: 'G-12345',
+  gambling_types_inferred: 'Pull-Tabs, E-Tabs, Bingo',
+  gross_receipts: 500000,
+  net_receipts: 75000,
+  listing_status: 'unclaimed',
+};
 
-export default function SiteDetailModal({ site, onClose }: SiteDetailModalProps) {
-  const { isJackpot } = useTheme();
-
-  // Update URL when site changes
-  useEffect(() => {
-    if (site) {
-      // Update URL without navigation
-      window.history.pushState(null, '', `/site/${site.site_id}`);
-    }
-  }, [site]);
-
-  // Handle close - restore URL
-  const handleClose = useCallback(() => {
-    window.history.pushState(null, '', '/');
-    onClose();
-  }, [onClose]);
-
-  // Handle escape key
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && site) {
-        handleClose();
-      }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [site, handleClose]);
-
-  // Handle back button
-  useEffect(() => {
-    const handlePopState = () => {
-      if (site) {
-        onClose();
-      }
-    };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, [site, onClose]);
-
-  if (!site) return null;
-
-  const hasPhotos = !!(site.photos && site.photos.length > 0);
-
-  return (
-    <>
-      {/* Backdrop - click to close */}
-      <div
-        role="presentation"
-        className={`fixed inset-0 z-40 md:bg-transparent md:pointer-events-none ${
-          isJackpot ? 'bg-black/50' : 'bg-black/30'
-        }`}
-        onClick={handleClose}
-      />
-
-      {/* Mobile: Bottom Sheet */}
-      <div className={`md:hidden fixed inset-x-0 bottom-0 z-50 rounded-t-2xl shadow-2xl max-h-[85dvh] overflow-hidden animate-slideUp ${
-        isJackpot ? 'bg-gray-900' : 'bg-white'
-      }`}>
-        {/* Drag handle */}
-        <div className="flex justify-center py-2">
-          <div className={`w-12 h-1.5 rounded-full ${isJackpot ? 'bg-gray-700' : 'bg-gray-300'}`} />
-        </div>
-
-        <div className="overflow-y-auto max-h-[calc(85dvh-40px)] pb-[env(safe-area-inset-bottom)]">
-          <SiteDetailContent site={site} onClose={handleClose} hasPhotos={hasPhotos} isJackpot={isJackpot} />
-        </div>
-      </div>
-
-      {/* Desktop: Right Panel */}
-      <div className={`hidden md:block fixed top-0 right-0 h-full w-[450px] z-50 shadow-2xl overflow-hidden animate-slideInRight ${
-        isJackpot ? 'bg-gray-900' : 'bg-white'
-      }`}>
-        <div className="h-full overflow-y-auto">
-          <SiteDetailContent site={site} onClose={handleClose} hasPhotos={hasPhotos} showCloseButton isJackpot={isJackpot} />
-        </div>
-      </div>
-    </>
-  );
-}
+const premiumSite: Site = {
+  site_id: 2,
+  site_name: "Lucky's Gaming Lounge",
+  organization_name: 'St. Paul Eagles Club',
+  gambling_manager: 'Jane Doe',
+  street_address: '567 Oak Avenue',
+  city: 'St. Paul',
+  state: 'MN',
+  zip_code: '55102',
+  latitude: 44.9537,
+  longitude: -93.0900,
+  license_number: 'G-12346',
+  gambling_types_inferred: 'Pull-Tabs, E-Tabs',
+  gross_receipts: 750000,
+  net_receipts: 120000,
+  listing_status: 'premium',
+  tab_type: 'booth',
+  pull_tab_prices: [5, 3, 2, 1],
+  etab_system: 'pilot',
+  website: 'www.luckyslounge.com',
+  phone: '(651) 555-0123',
+  hours: {
+    monday: { open: '11:00 AM', close: '1:00 AM' },
+    tuesday: { open: '11:00 AM', close: '1:00 AM' },
+    wednesday: { open: '11:00 AM', close: '1:00 AM' },
+    thursday: { open: '11:00 AM', close: '1:00 AM' },
+    friday: { open: '11:00 AM', close: '2:00 AM' },
+    saturday: { open: '11:00 AM', close: '2:00 AM' },
+    sunday: { open: '12:00 PM', close: '12:00 AM' },
+  },
+};
 
 interface SiteDetailContentProps {
   site: Site;
-  onClose: () => void;
-  hasPhotos: boolean;
   showCloseButton?: boolean;
   isJackpot?: boolean;
 }
 
-function SiteDetailContent({ site, onClose, hasPhotos, showCloseButton, isJackpot = false }: SiteDetailContentProps) {
+function SiteDetailContent({ site, showCloseButton, isJackpot = true }: SiteDetailContentProps) {
+  const hasPhotos = !!(site.photos && site.photos.length > 0);
+
   return (
     <div className="pb-8">
       {/* Header */}
@@ -118,7 +80,6 @@ function SiteDetailContent({ site, onClose, hasPhotos, showCloseButton, isJackpo
           </div>
           {showCloseButton && (
             <button
-              onClick={onClose}
               className={`p-2 rounded-full flex-shrink-0 ${
                 isJackpot ? 'hover:bg-gray-800 text-gray-400' : 'hover:bg-gray-100 text-gray-500'
               }`}
@@ -131,23 +92,19 @@ function SiteDetailContent({ site, onClose, hasPhotos, showCloseButton, isJackpo
 
         {/* Quick Actions */}
         <div className="flex gap-2 mt-3">
-          {site.latitude && site.longitude && (
-            <a
-              href={`https://www.google.com/maps/dir/?api=1&destination=${site.latitude},${site.longitude}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium ${
-                isJackpot
-                  ? 'bg-yellow-500 text-gray-900 hover:bg-yellow-400'
-                  : 'bg-blue-500 text-white hover:bg-blue-600'
-              }`}
-            >
-              <Navigation className="w-4 h-4" />
-              Get Directions
-            </a>
-          )}
-          <Link
-            href={`/site/${site.site_id}`}
+          <a
+            href="#"
+            className={`flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium ${
+              isJackpot
+                ? 'bg-yellow-500 text-gray-900 hover:bg-yellow-400'
+                : 'bg-blue-500 text-white hover:bg-blue-600'
+            }`}
+          >
+            <Navigation className="w-4 h-4" />
+            Get Directions
+          </a>
+          <a
+            href="#"
             className={`px-4 py-2.5 rounded-lg text-sm font-medium inline-flex items-center gap-2 ${
               isJackpot
                 ? 'bg-gray-800 text-gray-300 hover:bg-gray-700'
@@ -156,13 +113,13 @@ function SiteDetailContent({ site, onClose, hasPhotos, showCloseButton, isJackpo
           >
             <ExternalLink className="w-4 h-4" />
             Full Page
-          </Link>
+          </a>
         </div>
       </div>
 
       {/* Content */}
       <div className="p-4 space-y-6">
-        {/* Gambling Types (from GCB data) */}
+        {/* Gambling Types */}
         {site.gambling_types_inferred && (
           <div>
             <h3 className={`text-sm font-semibold mb-2 ${isJackpot ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -204,10 +161,9 @@ function SiteDetailContent({ site, onClose, hasPhotos, showCloseButton, isJackpo
           </div>
         )}
 
-        {/* Operator-Provided Details (only show if site has any) */}
+        {/* Operator Details */}
         {(site.tab_type || site.pull_tab_prices?.length || site.etab_system) && (
           <>
-            {/* Tab Type: Booth / Bar / Machine */}
             {site.tab_type && (
               <div>
                 <h3 className={`text-sm font-semibold mb-2 ${isJackpot ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -221,7 +177,6 @@ function SiteDetailContent({ site, onClose, hasPhotos, showCloseButton, isJackpo
               </div>
             )}
 
-            {/* Pull-Tab Prices */}
             {site.pull_tab_prices && site.pull_tab_prices.length > 0 && (
               <div>
                 <h3 className={`text-sm font-semibold mb-2 ${isJackpot ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -242,7 +197,6 @@ function SiteDetailContent({ site, onClose, hasPhotos, showCloseButton, isJackpo
               </div>
             )}
 
-            {/* E-Tabs */}
             {site.etab_system && (
               <div>
                 <h3 className={`text-sm font-semibold mb-2 ${isJackpot ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -258,7 +212,7 @@ function SiteDetailContent({ site, onClose, hasPhotos, showCloseButton, isJackpo
           </>
         )}
 
-        {/* Bar Contact Info (Website & Phone) */}
+        {/* Contact Info */}
         {(site.website || site.phone) && (
           <div className={`space-y-3 pt-4 border-t ${isJackpot ? 'border-gray-800' : 'border-gray-200'}`}>
             <h3 className={`text-sm font-semibold ${isJackpot ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -266,9 +220,7 @@ function SiteDetailContent({ site, onClose, hasPhotos, showCloseButton, isJackpo
             </h3>
             {site.website && (
               <a
-                href={site.website.startsWith('http') ? site.website : `https://${site.website}`}
-                target="_blank"
-                rel="noopener noreferrer"
+                href="#"
                 className={`flex items-center gap-2 text-sm ${
                   isJackpot ? 'text-yellow-400 hover:text-yellow-300' : 'text-blue-500 hover:text-blue-600'
                 }`}
@@ -279,7 +231,7 @@ function SiteDetailContent({ site, onClose, hasPhotos, showCloseButton, isJackpo
             )}
             {site.phone && (
               <a
-                href={`tel:${site.phone}`}
+                href="#"
                 className={`flex items-center gap-2 text-sm ${
                   isJackpot ? 'text-yellow-400 hover:text-yellow-300' : 'text-blue-500 hover:text-blue-600'
                 }`}
@@ -296,26 +248,14 @@ function SiteDetailContent({ site, onClose, hasPhotos, showCloseButton, isJackpo
           <h3 className={`text-sm font-semibold mb-2 ${isJackpot ? 'text-gray-300' : 'text-gray-700'}`}>
             Photos
           </h3>
-          {hasPhotos && site.photos ? (
-            <div className="flex gap-2 overflow-x-auto pb-2">
-              {site.photos.map((photo, index) => (
-                <div key={index} className={`w-40 h-32 flex-shrink-0 rounded-lg overflow-hidden ${
-                  isJackpot ? 'bg-gray-800' : 'bg-gray-200'
-                }`}>
-                  <img src={photo} alt="" className="w-full h-full object-cover" />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className={`w-full h-32 rounded-lg flex items-center justify-center text-sm ${
-              isJackpot ? 'bg-gray-800 text-gray-500' : 'bg-gray-100 text-gray-400'
-            }`}>
-              No photos yet
-            </div>
-          )}
+          <div className={`w-full h-32 rounded-lg flex items-center justify-center text-sm ${
+            isJackpot ? 'bg-gray-800 text-gray-500' : 'bg-gray-100 text-gray-400'
+          }`}>
+            No photos yet
+          </div>
         </div>
 
-        {/* Organization Info */}
+        {/* Organization */}
         {site.organization_name && (
           <div className={`pt-4 border-t ${isJackpot ? 'border-gray-800' : 'border-gray-200'}`}>
             <h3 className={`text-sm font-semibold mb-1 ${isJackpot ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -351,3 +291,115 @@ function SiteDetailContent({ site, onClose, hasPhotos, showCloseButton, isJackpo
     </div>
   );
 }
+
+function SiteDetailShowcase() {
+  return (
+    <div className="p-6">
+      <h1 className="text-3xl font-bold text-white mb-2">Site Detail Modal</h1>
+      <p className="text-gray-400 mb-8">
+        Site detail view shown as a bottom sheet (mobile) or side panel (desktop).
+      </p>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Premium Site - Jackpot Mode */}
+        <section>
+          <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wide mb-3">
+            Premium Site (Jackpot Mode)
+          </h2>
+          <div className="bg-gray-900 rounded-xl border border-gray-700 max-h-[600px] overflow-y-auto">
+            <SiteDetailContent site={premiumSite} showCloseButton isJackpot={true} />
+          </div>
+        </section>
+
+        {/* Unclaimed Site - Jackpot Mode */}
+        <section>
+          <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wide mb-3">
+            Unclaimed Site (Jackpot Mode)
+          </h2>
+          <div className="bg-gray-900 rounded-xl border border-gray-700 max-h-[600px] overflow-y-auto">
+            <SiteDetailContent site={unclaimedSite} showCloseButton isJackpot={true} />
+          </div>
+        </section>
+
+        {/* Premium Site - Default Mode */}
+        <section>
+          <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wide mb-3">
+            Premium Site (Default Mode)
+          </h2>
+          <div className="bg-white rounded-xl border border-gray-200 max-h-[600px] overflow-y-auto">
+            <SiteDetailContent site={premiumSite} showCloseButton isJackpot={false} />
+          </div>
+        </section>
+
+        {/* Mobile Bottom Sheet Preview */}
+        <section>
+          <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wide mb-3">
+            Mobile Bottom Sheet (Visual)
+          </h2>
+          <div className="bg-gray-900 rounded-xl border border-gray-700 overflow-hidden">
+            {/* Drag handle */}
+            <div className="flex justify-center py-2">
+              <div className="w-12 h-1.5 rounded-full bg-gray-700" />
+            </div>
+            <div className="max-h-[400px] overflow-y-auto">
+              <SiteDetailContent site={premiumSite} isJackpot={true} />
+            </div>
+          </div>
+          <p className="text-xs text-gray-500 mt-2">
+            On mobile, the modal slides up from the bottom with a drag handle
+          </p>
+        </section>
+      </div>
+
+      {/* Implementation Notes */}
+      <section className="mt-10 bg-gray-800 rounded-lg p-4">
+        <h3 className="text-lg font-semibold text-white mb-2">Implementation Notes</h3>
+        <ul className="text-gray-300 text-sm space-y-1">
+          <li>• <strong>Mobile:</strong> Bottom sheet with <code className="text-yellow-400">animate-slideUp</code>, max-h-[85dvh]</li>
+          <li>• <strong>Desktop:</strong> Right panel (450px wide) with <code className="text-yellow-400">animate-slideInRight</code></li>
+          <li>• Updates URL to <code className="text-yellow-400">/site/[id]</code> without navigation</li>
+          <li>• Closes on: Escape key, backdrop click, back button</li>
+          <li>• Backdrop uses <code className="text-yellow-400">role="presentation"</code> for accessibility</li>
+          <li>• Safe area padding for iPhone: <code className="text-yellow-400">pb-[env(safe-area-inset-bottom)]</code></li>
+        </ul>
+      </section>
+    </div>
+  );
+}
+
+const meta: Meta = {
+  title: 'Components/SiteDetailModal',
+  component: SiteDetailShowcase,
+  parameters: {
+    layout: 'fullscreen',
+  },
+};
+
+export default meta;
+type Story = StoryObj;
+
+export const Overview: Story = {};
+
+export const PremiumSite: Story = {
+  render: () => (
+    <div className="p-4 max-w-md bg-gray-900 rounded-xl">
+      <SiteDetailContent site={premiumSite} showCloseButton isJackpot={true} />
+    </div>
+  ),
+};
+
+export const UnclaimedSite: Story = {
+  render: () => (
+    <div className="p-4 max-w-md bg-gray-900 rounded-xl">
+      <SiteDetailContent site={unclaimedSite} showCloseButton isJackpot={true} />
+    </div>
+  ),
+};
+
+export const DefaultMode: Story = {
+  render: () => (
+    <div className="p-4 max-w-md bg-white rounded-xl border border-gray-200">
+      <SiteDetailContent site={premiumSite} showCloseButton isJackpot={false} />
+    </div>
+  ),
+};

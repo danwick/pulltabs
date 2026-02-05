@@ -1,20 +1,41 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Oswald, Bebas_Neue, Sacramento } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Body text - clean, readable
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+// Headings, navigation, badges
+const oswald = Oswald({
+  variable: "--font-oswald",
   subsets: ["latin"],
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
+});
+
+// Taglines, condensed labels (uppercase)
+const bebasNeue = Bebas_Neue({
+  variable: "--font-bebas",
+  subsets: ["latin"],
+  display: "swap",
+  weight: "400",
+});
+
+// Script accent for "magic" moments
+const sacramento = Sacramento({
+  variable: "--font-sacramento",
+  subsets: ["latin"],
+  display: "swap",
+  weight: "400",
 });
 
 export const metadata: Metadata = {
-  title: "Pull-Tab Finder | Find Charitable Gambling in Minnesota",
+  title: "Pulltab Magic | Find the Win",
   description: "Find pull-tabs, e-tabs, bingo, and other charitable gambling locations near you in Minnesota.",
 };
 
@@ -26,7 +47,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${inter.variable} ${oswald.variable} ${bebasNeue.variable} ${sacramento.variable} antialiased`}
       >
         <Providers>
           {children}

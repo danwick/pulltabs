@@ -106,7 +106,7 @@ export default function MobileFilterBar({ onSearch, onLocationRequest, filters }
   return (
     <>
       {/* Floating filter button */}
-      <div className="absolute top-3 left-3 z-20">
+      <div className="absolute top-3 left-3 pt-[env(safe-area-inset-top)] pl-[env(safe-area-inset-left)] z-20">
         <button
           onClick={() => setShowDropdown(!showDropdown)}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-lg shadow-lg text-sm font-semibold transition-colors ${
@@ -136,6 +136,7 @@ export default function MobileFilterBar({ onSearch, onLocationRequest, filters }
         <>
           {/* Backdrop */}
           <div
+            role="presentation"
             className="absolute inset-0 z-20 bg-black/30"
             onClick={handleClose}
           />
@@ -151,7 +152,7 @@ export default function MobileFilterBar({ onSearch, onLocationRequest, filters }
             <div className={`flex items-center justify-between px-4 py-3 border-b ${
               isJackpot ? 'border-gray-700' : 'border-gray-200'
             }`}>
-              <h3 className={`font-semibold ${isJackpot ? 'text-white' : 'text-gray-900'}`}>
+              <h3 className={`font-semibold text-balance ${isJackpot ? 'text-white' : 'text-gray-900'}`}>
                 Filters
               </h3>
               <div className="flex items-center gap-2">
@@ -165,6 +166,7 @@ export default function MobileFilterBar({ onSearch, onLocationRequest, filters }
                 )}
                 <button
                   onClick={handleClose}
+                  aria-label="Close filters"
                   className={`p-1 rounded-lg ${isJackpot ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
                 >
                   <X className={`w-5 h-5 ${isJackpot ? 'text-gray-400' : 'text-gray-500'}`} />

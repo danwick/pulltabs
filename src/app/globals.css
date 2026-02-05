@@ -12,8 +12,9 @@
   --theme-surface: #ffffff;
   --theme-surface-hover: #f3f4f6;
   --theme-border: #e5e7eb;
+  --theme-border-subtle: #f3f4f6;
   --theme-text-primary: #111827;
-  --theme-text-secondary: #6b7280;
+  --theme-text-secondary: #4b5563;
   --theme-text-muted: #9ca3af;
 
   /* Accent colors */
@@ -21,11 +22,21 @@
   --theme-accent-hover: #2563eb;
   --theme-accent-light: #dbeafe;
 
+  /* Secondary accent (purple for premium) */
+  --theme-secondary: #7c3aed;
+  --theme-secondary-light: rgba(124, 58, 237, 0.1);
+
+  /* Tertiary (green for prices/money) */
+  --theme-tertiary: #059669;
+  --theme-tertiary-light: rgba(5, 150, 105, 0.1);
+
   /* Status colors */
   --theme-success: #22c55e;
   --theme-success-light: #dcfce7;
   --theme-warning: #eab308;
   --theme-warning-light: #fef9c3;
+  --theme-error: #ef4444;
+  --theme-error-light: #fef2f2;
 
   /* Header */
   --theme-header-bg: #ffffff;
@@ -35,66 +46,167 @@
   /* Cards */
   --theme-card-bg: #ffffff;
   --theme-card-border: #e5e7eb;
-  --theme-card-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  --theme-card-shadow: 0 1px 3px rgba(0,0,0,0.08);
+
+  /* Inputs */
+  --theme-input-bg: #ffffff;
+  --theme-input-border: #d1d5db;
+  --theme-input-border-focus: #3b82f6;
+  --theme-input-placeholder: #9ca3af;
 
   /* Map marker */
   --theme-marker-bg: #3b82f6;
   --theme-marker-text: #ffffff;
+
+  /* Data display */
+  --theme-data-highlight: #3b82f6;
+  --theme-data-muted: #6b7280;
 }
 
 /* ============================================
-   Jackpot Mode (Casino/gaming vibe)
+   Jackpot Mode (Casino/gaming vibe - REFINED)
    ============================================ */
 :root.jackpot-mode {
-  --background: #0a0a0a;
-  --foreground: #f5f5f5;
+  --background: #09090b;
+  --foreground: #fafafa;
 
-  /* Theme colors - dark with gold accents */
-  --theme-bg: #0a0a0a;
-  --theme-surface: #1a1a1a;
-  --theme-surface-hover: #262626;
-  --theme-border: #333333;
-  --theme-text-primary: #f5f5f5;
-  --theme-text-secondary: #a3a3a3;
-  --theme-text-muted: #737373;
+  /* Theme colors - darker, more contrast */
+  --theme-bg: #09090b;
+  --theme-surface: #18181b;
+  --theme-surface-hover: #27272a;
+  --theme-border: #27272a;
+  --theme-border-subtle: #1f1f23;
+  --theme-text-primary: #fafafa;
+  --theme-text-secondary: #a1a1aa;
+  --theme-text-muted: #71717a;
 
-  /* Gold accent */
-  --theme-accent: #ffd700;
-  --theme-accent-hover: #ffed4a;
-  --theme-accent-light: rgba(255, 215, 0, 0.15);
+  /* Gold accent - slightly warmer */
+  --theme-accent: #fbbf24;
+  --theme-accent-hover: #fcd34d;
+  --theme-accent-light: rgba(251, 191, 36, 0.15);
+
+  /* Secondary (purple for e-tabs/premium) */
+  --theme-secondary: #a855f7;
+  --theme-secondary-light: rgba(168, 85, 247, 0.15);
+
+  /* Tertiary (emerald for prices/money) */
+  --theme-tertiary: #34d399;
+  --theme-tertiary-light: rgba(52, 211, 153, 0.15);
 
   /* Status colors */
-  --theme-success: #22c55e;
-  --theme-success-light: rgba(34, 197, 94, 0.2);
-  --theme-warning: #ffd700;
-  --theme-warning-light: rgba(255, 215, 0, 0.2);
+  --theme-success: #34d399;
+  --theme-success-light: rgba(52, 211, 153, 0.15);
+  --theme-warning: #fbbf24;
+  --theme-warning-light: rgba(251, 191, 36, 0.15);
+  --theme-error: #f87171;
+  --theme-error-light: rgba(248, 113, 113, 0.15);
 
-  /* Header - gradient effect */
-  --theme-header-bg: linear-gradient(135deg, #1e3a8a 0%, #4c1d95 100%);
-  --theme-header-text: #ffd700;
+  /* Header - deep blue */
+  --theme-header-bg: #1e3a8a;
+  --theme-header-text: #fbbf24;
   --theme-header-border: transparent;
 
-  /* Cards */
-  --theme-card-bg: #1a1a1a;
-  --theme-card-border: #333333;
-  --theme-card-shadow: 0 4px 20px rgba(255, 215, 0, 0.1);
+  /* Cards - subtle elevation */
+  --theme-card-bg: #18181b;
+  --theme-card-border: #27272a;
+  --theme-card-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+
+  /* Inputs - cleaner, less border */
+  --theme-input-bg: #18181b;
+  --theme-input-border: #3f3f46;
+  --theme-input-border-focus: #fbbf24;
+  --theme-input-placeholder: #71717a;
 
   /* Map marker - gold */
-  --theme-marker-bg: #ffd700;
-  --theme-marker-text: #0a0a0a;
+  --theme-marker-bg: #fbbf24;
+  --theme-marker-text: #09090b;
+
+  /* Data display */
+  --theme-data-highlight: #fbbf24;
+  --theme-data-muted: #a1a1aa;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
 body {
+  /* Font families - defined on body because next/font sets variables here via class names */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-oswald), ui-sans-serif, system-ui, sans-serif;
+  --font-condensed: var(--font-bebas), ui-sans-serif, sans-serif;
+  --font-script: var(--font-sacramento), cursive;
+
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+}
+
+/* ============================================
+   Typography System
+   ============================================ */
+
+/* Heading styles */
+h1, h2, h3, h4, h5, h6,
+.heading {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+/* Display text (logo, hero) */
+.text-display {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+/* Condensed labels (taglines, badges) */
+.text-condensed {
+  font-family: var(--font-condensed);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1;
+}
+
+/* Script accent */
+.text-script {
+  font-family: var(--font-script);
+  font-weight: 400;
+}
+
+/* Body text improvements */
+.text-body {
+  font-family: var(--font-sans);
+  line-height: 1.6;
+}
+
+/* UI text (buttons, labels) */
+.text-ui {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* Tabular numbers for prices/data */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Logo styles */
+.logo-brand {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.logo-magic {
+  font-family: var(--font-script);
+  font-size: 0.7em;
+  margin-left: 0.1em;
 }
 
 /* Mapbox GL overrides */
@@ -204,11 +316,244 @@ body {
 
 /* Jackpot mode button hover effects */
 .jackpot-mode .btn-primary {
-  background: linear-gradient(135deg, #ffd700 0%, #ffed4a 100%);
+  background: #ffd700;
   color: #0a0a0a;
   font-weight: 600;
 }
 
 .jackpot-mode .btn-primary:hover {
-  box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+  background: #fcd34d;
+}
+
+/* ============================================
+   Refined Component Styles
+   ============================================ */
+
+/* Cleaner input styling */
+.input-clean {
+  background: var(--theme-input-bg);
+  border: 1px solid var(--theme-input-border);
+  border-radius: 0.5rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  color: var(--theme-text-primary);
+  transition: border-color 0.15s ease;
+}
+
+.input-clean::placeholder {
+  color: var(--theme-input-placeholder);
+}
+
+.input-clean:focus {
+  outline: none;
+  border-color: var(--theme-input-border-focus);
+  box-shadow: 0 0 0 3px var(--theme-accent-light);
+}
+
+/* Data-dense card styling */
+.card-dense {
+  background: var(--theme-card-bg);
+  border: 1px solid var(--theme-card-border);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  box-shadow: var(--theme-card-shadow);
+}
+
+.card-dense:hover {
+  border-color: var(--theme-accent);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.jackpot-mode .card-dense:hover {
+  box-shadow: 0 4px 16px rgba(251, 191, 36, 0.1);
+}
+
+/* Badge variants - cleaner */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: 9999px;
+  background: var(--theme-surface);
+  color: var(--theme-text-secondary);
+  border: 1px solid var(--theme-border-subtle);
+}
+
+.badge-accent {
+  background: var(--theme-accent-light);
+  color: var(--theme-accent);
+  border-color: transparent;
+}
+
+.badge-secondary {
+  background: var(--theme-secondary-light);
+  color: var(--theme-secondary);
+  border-color: transparent;
+}
+
+.badge-tertiary {
+  background: var(--theme-tertiary-light);
+  color: var(--theme-tertiary);
+  border-color: transparent;
+}
+
+.badge-success {
+  background: var(--theme-success-light);
+  color: var(--theme-success);
+  border-color: transparent;
+}
+
+/* Price chip - for money values */
+.price-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.5rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  border-radius: 0.5rem;
+  background: var(--theme-tertiary-light);
+  color: var(--theme-tertiary);
+}
+
+/* Data row - for displaying stats inline */
+.data-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: var(--theme-text-secondary);
+}
+
+.data-row .data-value {
+  color: var(--theme-data-highlight);
+  font-weight: 600;
+}
+
+.data-row .data-label {
+  color: var(--theme-data-muted);
+}
+
+/* Distance indicator */
+.distance-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--theme-text-muted);
+}
+
+.distance-indicator svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+/* Premium indicator glow */
+.premium-glow {
+  position: relative;
+}
+
+.premium-glow::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--theme-accent), var(--theme-secondary));
+  opacity: 0.15;
+  z-index: -1;
+}
+
+/* Active/selected state for cards */
+.card-selected {
+  border-color: var(--theme-accent) !important;
+}
+
+.jackpot-mode .card-selected {
+  box-shadow: 0 0 0 1px var(--theme-accent), 0 4px 16px rgba(251, 191, 36, 0.15);
+}
+
+/* Button refinements */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--theme-accent);
+  color: var(--theme-bg);
+  border: none;
+}
+
+.btn-primary:hover {
+  background: var(--theme-accent-hover);
+}
+
+.btn-secondary {
+  background: var(--theme-surface);
+  color: var(--theme-text-primary);
+  border: 1px solid var(--theme-border);
+}
+
+.btn-secondary:hover {
+  background: var(--theme-surface-hover);
+  border-color: var(--theme-text-muted);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--theme-accent);
+  border: 1px solid var(--theme-accent);
+}
+
+.btn-ghost:hover {
+  background: var(--theme-accent-light);
+}
+
+/* Chip toggle (for filter selection) */
+.chip-toggle {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 9999px;
+  background: var(--theme-surface);
+  color: var(--theme-text-secondary);
+  border: 1px solid var(--theme-border);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.chip-toggle:hover {
+  border-color: var(--theme-text-muted);
+}
+
+.chip-toggle.active {
+  background: var(--theme-accent);
+  color: var(--theme-bg);
+  border-color: var(--theme-accent);
+}
+
+.chip-toggle.active-secondary {
+  background: var(--theme-secondary);
+  color: white;
+  border-color: var(--theme-secondary);
+}
+
+.chip-toggle.active-tertiary {
+  background: var(--theme-tertiary);
+  color: white;
+  border-color: var(--theme-tertiary);
 }

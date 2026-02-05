@@ -32,11 +32,11 @@ export default function SiteCard({ site, isSelected, onClick }: SiteCardProps) {
     >
       {/* Name & Status */}
       <div className="flex justify-between items-start mb-1">
-        <h3 className={`font-semibold line-clamp-1 ${isJackpot ? 'text-white' : 'text-gray-900'}`}>
+        <h3 className={`heading text-base font-semibold line-clamp-1 ${isJackpot ? 'text-white' : 'text-gray-900'}`}>
           {site.site_name}
         </h3>
         {site.listing_status === 'premium' && (
-          <span className={`px-2 py-0.5 text-xs rounded-full flex-shrink-0 ml-2 ${
+          <span className={`text-condensed text-[10px] px-2 py-0.5 rounded-full flex-shrink-0 ml-2 ${
             isJackpot ? 'bg-yellow-500/20 text-yellow-400' : 'bg-yellow-100 text-yellow-800'
           }`}>
             Premium

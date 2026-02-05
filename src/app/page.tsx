@@ -208,10 +208,10 @@ function HomeContent() {
   }, []);
 
   return (
-    <div className="h-screen flex flex-col" style={{ background: 'var(--theme-bg)' }}>
+    <div className="h-dvh flex flex-col" style={{ background: 'var(--theme-bg)' }}>
       {/* Header */}
       <header
-        className={`px-4 py-3 flex items-center justify-between z-10 transition-all duration-300 ${
+        className={`px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] flex items-center justify-between z-10 transition-colors duration-300 ${
           isJackpot
             ? 'border-b border-transparent'
             : 'bg-white border-b'
@@ -219,12 +219,21 @@ function HomeContent() {
         style={isJackpot ? { background: 'var(--theme-header-bg)' } : {}}
       >
         <div className="flex items-center gap-3">
-          <h1
-            className={`text-xl font-bold transition-colors ${
-              isJackpot ? 'text-yellow-400' : 'text-gray-900'
-            }`}
-          >
-            Pulltab Magic
+          <h1 className="text-balance transition-colors">
+            <span
+              className={`logo-brand text-2xl transition-colors ${
+                isJackpot ? 'text-yellow-400' : 'text-gray-900'
+              }`}
+            >
+              Pulltab
+            </span>
+            <span
+              className={`logo-magic transition-colors ${
+                isJackpot ? 'text-cyan-300' : 'text-blue-500'
+              }`}
+            >
+              Magic
+            </span>
           </h1>
         </div>
         <div className="flex items-center gap-4">
@@ -239,7 +248,7 @@ function HomeContent() {
       <div className="flex-1 flex overflow-hidden relative">
         {/* Sidebar */}
         <div
-          className={`absolute md:relative z-10 h-full transition-all duration-300 ${
+          className={`absolute md:relative z-10 h-full transition-transform duration-300 ${
             showSidebar ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
           } w-full md:w-96 flex flex-col ${
             isJackpot
@@ -283,9 +292,9 @@ function HomeContent() {
           {/* Mobile toggle button for list view */}
           <button
             onClick={() => setShowSidebar(!showSidebar)}
-            className={`absolute bottom-4 left-4 md:hidden px-4 py-2 rounded-full shadow-lg font-medium text-sm transition-all ${
+            className={`absolute bottom-4 left-4 pb-[max(0.5rem,env(safe-area-inset-bottom))] pl-[max(1rem,env(safe-area-inset-left))] md:hidden px-4 py-2 rounded-full shadow-lg font-medium text-sm transition-colors ${
               isJackpot
-                ? 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900'
+                ? 'bg-yellow-400 text-gray-900'
                 : 'bg-white text-gray-900'
             }`}
           >
@@ -303,7 +312,7 @@ function HomeContent() {
 // Loading fallback for Suspense
 function HomeLoading() {
   return (
-    <div className="h-screen flex items-center justify-center">
+    <div className="h-dvh flex items-center justify-center">
       <div className="text-gray-500">Loading map...</div>
     </div>
   );
