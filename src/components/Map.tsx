@@ -31,19 +31,19 @@ const MAP_STYLES = {
 // Theme-specific colors
 const THEME_COLORS = {
   default: {
-    clusterSmall: '#3b82f6',
-    clusterMedium: '#2563eb',
-    clusterLarge: '#1d4ed8',
-    point: '#3b82f6',
+    clusterSmall: '#6b7280',
+    clusterMedium: '#4b5563',
+    clusterLarge: '#374151',
+    point: '#6b7280',
     selected: '#ef4444',
     stroke: '#ffffff',
     text: '#ffffff',
   },
   jackpot: {
-    clusterSmall: '#ffd700',
-    clusterMedium: '#f59e0b',
-    clusterLarge: '#d97706',
-    point: '#ffd700',
+    clusterSmall: '#9ca3af',
+    clusterMedium: '#6b7280',
+    clusterLarge: '#4b5563',
+    point: '#9ca3af',
     selected: '#ef4444',
     stroke: '#000000',
     text: '#000000',
@@ -209,13 +209,13 @@ function MapComponent({
           'circle-radius': [
             'step',
             ['get', 'point_count'],
-            20, // small clusters
+            12, // small clusters
             10,
-            25, // medium clusters
+            15, // medium clusters
             50,
-            35, // large clusters
+            18, // large clusters
           ],
-          'circle-stroke-width': 2,
+          'circle-stroke-width': 1.5,
           'circle-stroke-color': colors.stroke,
         },
       });
@@ -229,7 +229,7 @@ function MapComponent({
         layout: {
           'text-field': '{point_count_abbreviated}',
           'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-          'text-size': 12,
+          'text-size': 10,
         },
         paint: {
           'text-color': colors.text,
@@ -244,8 +244,8 @@ function MapComponent({
         filter: ['all', ['!', ['has', 'point_count']], ['!=', ['get', 'listing_status'], 'premium']],
         paint: {
           'circle-color': colors.point,
-          'circle-radius': 8,
-          'circle-stroke-width': 2,
+          'circle-radius': 5,
+          'circle-stroke-width': 1.5,
           'circle-stroke-color': colors.stroke,
         },
       });
@@ -415,8 +415,8 @@ function MapComponent({
             50,
             colors.clusterLarge,
           ],
-          'circle-radius': ['step', ['get', 'point_count'], 20, 10, 25, 50, 35],
-          'circle-stroke-width': 2,
+          'circle-radius': ['step', ['get', 'point_count'], 12, 10, 15, 50, 18],
+          'circle-stroke-width': 1.5,
           'circle-stroke-color': colors.stroke,
         },
       });
@@ -430,7 +430,7 @@ function MapComponent({
         layout: {
           'text-field': '{point_count_abbreviated}',
           'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-          'text-size': 12,
+          'text-size': 10,
         },
         paint: { 'text-color': colors.text },
       });
@@ -443,8 +443,8 @@ function MapComponent({
         filter: ['all', ['!', ['has', 'point_count']], ['!=', ['get', 'listing_status'], 'premium']],
         paint: {
           'circle-color': colors.point,
-          'circle-radius': 8,
-          'circle-stroke-width': 2,
+          'circle-radius': 5,
+          'circle-stroke-width': 1.5,
           'circle-stroke-color': colors.stroke,
         },
       });
@@ -504,8 +504,8 @@ function MapComponent({
     map.current.setPaintProperty('unclustered-point-basic', 'circle-radius', [
       'case',
       ['==', ['get', 'id'], selectedSiteId || -1],
-      12, // larger for selected
-      8, // normal for others
+      9, // larger for selected
+      5, // normal for others
     ]);
 
     // Update paint property for selected state - Premium points
