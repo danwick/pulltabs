@@ -201,10 +201,26 @@ function HomeContent() {
     return 6;
   }, [initialMapState, userLocation]);
 
-  // Find the selected site object
-  const selectedSite = useMemo(() => {
-    if (!selectedSiteId) return null;
-    return sites.find(s => s.site_id === selectedSiteId) || null;
+  // Fetch full site details (with hours) when a site is selected
+  const [selectedSiteDetail, setSelectedSiteDetail] = useState<Site | null>(null);
+
+  useEffect(() => {
+    if (!selectedSiteId) {
+      setSelectedSiteDetail(null);
+      return;
+    }
+
+    // Start with list data while fetching full details
+    const listSite = sites.find(s => s.site_id === selectedSiteId) || null;
+    setSelectedSiteDetail(listSite);
+
+    // Fetch full details (includes hours)
+    fetch(`/api/sites/${selectedSiteId}`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data) setSelectedSiteDetail(data);
+      })
+      .catch(() => {/* keep list data on error */});
   }, [selectedSiteId, sites]);
 
   // Close the detail panel
@@ -362,7 +378,7 @@ function HomeContent() {
       </div>
 
       {/* Site Detail Modal - Desktop: right panel, Mobile: bottom sheet */}
-      <SiteDetailModal site={selectedSite} onClose={handleClosePanel} />
+      <SiteDetailModal site={selectedSiteDetail} onClose={handleClosePanel} />
     </div>
   );
 }

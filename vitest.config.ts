@@ -44,6 +44,19 @@ export default defineConfig({
           },
         },
       },
+      {
+        test: {
+          name: 'components',
+          include: ['src/**/*.component.test.tsx'],
+          environment: 'jsdom',
+          setupFiles: ['src/test/component-setup.ts'],
+        },
+        resolve: {
+          alias: {
+            '@': path.resolve(dirname, './src'),
+          },
+        },
+      },
     ],
   },
 });

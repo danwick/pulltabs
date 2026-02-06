@@ -349,6 +349,14 @@ function SiteDetailContent({ site, onClose, hasPhotos, showCloseButton, isJackpo
   );
 }
 
+// Convert 24h time (e.g. "14:00") to 12h (e.g. "2:00 PM")
+function formatTime(time24: string): string {
+  const [h, m] = time24.split(':').map(Number);
+  const period = h >= 12 ? 'PM' : 'AM';
+  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return `${h12}:${String(m).padStart(2, '0')} ${period}`;
+}
+
 // Helper component to display hours
 function HoursDisplay({ hours, isJackpot }: { hours: SiteHours | null | undefined; isJackpot: boolean }) {
   if (!hours) return null;
@@ -370,7 +378,7 @@ function HoursDisplay({ hours, isJackpot }: { hours: SiteHours | null | undefine
         if (!dayHours) return null;
         return (
           <p key={key}>
-            {label}: {dayHours.open} - {dayHours.last_call ? 'Last Call' : dayHours.close}
+            {label}: {formatTime(dayHours.open)} - {dayHours.last_call ? 'Last Call' : formatTime(dayHours.close)}
           </p>
         );
       })}

@@ -11,7 +11,9 @@
     "build-storybook": "storybook build",
     "chromatic": "chromatic",
     "test:api": "vitest run --project api",
-    "test:api:watch": "vitest --project api"
+    "test:api:watch": "vitest --project api",
+    "test:components": "vitest run --project components",
+    "test:components:watch": "vitest --project components"
   },
   "dependencies": {
     "@auth/core": "^0.34.3",
@@ -35,6 +37,8 @@
     "@storybook/addon-vitest": "^10.2.1",
     "@storybook/nextjs-vite": "^10.2.1",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -45,6 +49,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
     "eslint-plugin-storybook": "^10.2.1",
+    "jsdom": "^28.0.0",
     "playwright": "^1.58.0",
     "storybook": "^10.2.1",
     "tailwindcss": "^4",

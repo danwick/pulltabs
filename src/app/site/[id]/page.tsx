@@ -246,6 +246,14 @@ export default async function SitePage({ params }: SitePageProps) {
   );
 }
 
+// Convert 24h time (e.g. "14:00") to 12h (e.g. "2:00 PM")
+function formatTime(time24: string): string {
+  const [h, m] = time24.split(':').map(Number);
+  const period = h >= 12 ? 'PM' : 'AM';
+  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+  return `${h12}:${String(m).padStart(2, '0')} ${period}`;
+}
+
 // Helper component to display hours in a grid
 function HoursGrid({ hours }: { hours: SiteHours | null | undefined }) {
   if (!hours) return null;
@@ -260,7 +268,7 @@ function HoursGrid({ hours }: { hours: SiteHours | null | undefined }) {
           <div key={day} className="flex justify-between">
             <span className="text-gray-500 capitalize">{day.slice(0, 3)}</span>
             <span className="text-gray-900">
-              {dayHours ? `${dayHours.open} - ${dayHours.last_call ? 'Last Call' : dayHours.close}` : 'Closed'}
+              {dayHours ? `${formatTime(dayHours.open)} - ${dayHours.last_call ? 'Last Call' : formatTime(dayHours.close)}` : 'Closed'}
             </span>
           </div>
         );
