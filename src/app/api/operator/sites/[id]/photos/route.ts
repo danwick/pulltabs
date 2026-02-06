@@ -49,7 +49,7 @@ export async function GET(
     }
 
     const sites = await sql`
-      SELECT photos FROM sites WHERE site_id = ${siteId}
+      SELECT photos FROM sites WHERE id = ${siteId}
     `;
 
     if (sites.length === 0) {
@@ -102,7 +102,7 @@ export async function POST(
 
     // Get current photos
     const sites = await sql`
-      SELECT photos FROM sites WHERE site_id = ${siteId}
+      SELECT photos FROM sites WHERE id = ${siteId}
     `;
 
     if (sites.length === 0) {
@@ -126,7 +126,7 @@ export async function POST(
       UPDATE sites
       SET photos = ${JSON.stringify(newPhotos)},
           updated_at = NOW()
-      WHERE site_id = ${siteId}
+      WHERE id = ${siteId}
     `;
 
     return NextResponse.json({ photos: newPhotos });
@@ -175,7 +175,7 @@ export async function DELETE(
 
     // Get current photos
     const sites = await sql`
-      SELECT photos FROM sites WHERE site_id = ${siteId}
+      SELECT photos FROM sites WHERE id = ${siteId}
     `;
 
     if (sites.length === 0) {
@@ -191,7 +191,7 @@ export async function DELETE(
       UPDATE sites
       SET photos = ${JSON.stringify(newPhotos)},
           updated_at = NOW()
-      WHERE site_id = ${siteId}
+      WHERE id = ${siteId}
     `;
 
     // Try to delete from Vercel Blob (ignore errors if file doesn't exist)

@@ -27,7 +27,7 @@ export async function GET() {
     // Get all claims for this user with site info
     const claims = await sql`
       SELECT
-        s.site_id as id,
+        s.id as site_id,
         s.site_name,
         s.city,
         s.listing_status,
@@ -35,7 +35,7 @@ export async function GET() {
         sc.requested_at,
         sc.reviewed_at
       FROM site_claims sc
-      JOIN sites s ON sc.site_id = s.site_id
+      JOIN sites s ON sc.site_id = s.id
       WHERE sc.user_id = ${userId}
       ORDER BY sc.requested_at DESC
     `;

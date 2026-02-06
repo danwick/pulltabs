@@ -19,7 +19,7 @@ import {
 import { signOut } from 'next-auth/react';
 
 interface ClaimedSite {
-  id: number;
+  site_id: number;
   site_name: string;
   city: string;
   listing_status: string;
@@ -203,8 +203,8 @@ export default function DashboardPage() {
             <div className="divide-y divide-[var(--theme-border)]">
               {claimedSites.map((site) => (
                 <Link
-                  key={site.id}
-                  href={`/operator/site/${site.id}/edit`}
+                  key={site.site_id}
+                  href={`/operator/site/${site.site_id}/edit`}
                   className="flex items-center gap-4 p-4 hover:bg-[var(--theme-bg)] transition-colors"
                 >
                   <div className="w-12 h-12 bg-[var(--theme-bg)] rounded-lg flex items-center justify-center">
