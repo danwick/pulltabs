@@ -44,7 +44,7 @@ const mockSites: Site[] = [
     fiscal_year: '2025',
     is_active: true,
     listing_status: 'premium',
-    tab_type: 'booth',
+    tab_type: ['booth'],
     pull_tab_prices: [5, 3, 2, 1],
     etab_system: 'pilot',
   },
@@ -67,7 +67,7 @@ const mockSites: Site[] = [
     fiscal_year: '2025',
     is_active: true,
     listing_status: 'standard',
-    tab_type: 'behind_bar',
+    tab_type: ['behind_bar'],
     pull_tab_prices: [2, 1],
   },
   {

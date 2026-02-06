@@ -5,6 +5,8 @@ import { neon } from '@neondatabase/serverless';
 
 const sql = neon(process.env.DATABASE_URL!);
 
+const DAY_NAMES = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const;
+
 // GET /api/operator/sites/[id] - Get site details for editing
 export async function GET(
   request: NextRequest,
@@ -71,7 +73,29 @@ export async function GET(
       return NextResponse.json({ error: 'Site not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ site: sites[0] });
+    // Fetch hours from site_hours table
+    const hoursRows = await sql`
+      SELECT day_of_week, open_time, close_time
+      FROM site_hours
+      WHERE site_id = ${siteId}
+      ORDER BY day_of_week
+    `;
+
+    // Transform DB rows into SiteHours object
+    const hours: Record<string, { open: string; close: string }> = {};
+    for (const row of hoursRows) {
+      const dayName = DAY_NAMES[row.day_of_week];
+      if (dayName && row.open_time && row.close_time) {
+        hours[dayName] = {
+          open: row.open_time.slice(0, 5), // "HH:MM:SS" -> "HH:MM"
+          close: row.close_time.slice(0, 5),
+        };
+      }
+    }
+
+    const site = { ...sites[0], hours: Object.keys(hours).length > 0 ? hours : null };
+
+    return NextResponse.json({ site });
   } catch (error) {
     console.error('Error fetching site:', error);
     return NextResponse.json(
@@ -122,7 +146,7 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { phone, website, tab_type, pull_tab_prices, etab_system } = body;
+    const { phone, website, tab_type, pull_tab_prices, etab_system, hours } = body;
 
     // Update site details
     await sql`
@@ -130,12 +154,31 @@ export async function PATCH(
       SET
         phone = ${phone || null},
         website = ${website || null},
-        tab_type = ${tab_type || null},
+        tab_type = ${Array.isArray(tab_type) && tab_type.length > 0 ? tab_type : null},
         pull_tab_prices = ${pull_tab_prices?.length > 0 ? pull_tab_prices : null},
         etab_system = ${etab_system || null},
         updated_at = NOW()
       WHERE id = ${siteId}
     `;
+
+    // Save hours to site_hours table
+    if (hours && typeof hours === 'object') {
+      // Delete existing hours for this site
+      await sql`DELETE FROM site_hours WHERE site_id = ${siteId}`;
+
+      // Insert new hours
+      for (const [dayName, times] of Object.entries(hours)) {
+        const dayIndex = DAY_NAMES.indexOf(dayName as typeof DAY_NAMES[number]);
+        if (dayIndex === -1) continue;
+        const t = times as { open?: string; close?: string } | null;
+        if (!t?.open || !t?.close) continue;
+
+        await sql`
+          INSERT INTO site_hours (site_id, day_of_week, open_time, close_time)
+          VALUES (${siteId}, ${dayIndex}, ${t.open}, ${t.close})
+        `;
+      }
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

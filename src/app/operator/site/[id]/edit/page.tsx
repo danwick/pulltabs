@@ -49,7 +49,7 @@ interface FormData {
   phone: string;
   website: string;
   hours: SiteHours;
-  tab_type: TabType | '';
+  tab_type: TabType[];
   pull_tab_prices: PullTabPrice[];
   etab_system: EtabSystem | '';
   photos: string[];
@@ -71,7 +71,7 @@ export default function EditSitePage() {
     phone: '',
     website: '',
     hours: {},
-    tab_type: '',
+    tab_type: [],
     pull_tab_prices: [],
     etab_system: '',
     photos: [],
@@ -102,7 +102,7 @@ export default function EditSitePage() {
           phone: data.site.phone || '',
           website: data.site.website || '',
           hours: data.site.hours || {},
-          tab_type: data.site.tab_type || '',
+          tab_type: data.site.tab_type || [],
           pull_tab_prices: data.site.pull_tab_prices || [],
           etab_system: data.site.etab_system || '',
           photos: data.site.photos || [],
@@ -334,10 +334,10 @@ export default function EditSitePage() {
                   Website
                 </label>
                 <input
-                  type="url"
+                  type="text"
                   value={formData.website}
                   onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                  placeholder="https://example.com"
+                  placeholder="www.example.com"
                   className="w-full px-4 py-2.5 bg-[var(--theme-input-bg)] border border-[var(--theme-input-border)] rounded-lg text-[var(--theme-text-primary)] placeholder:text-[var(--theme-input-placeholder)] focus:outline-none focus:border-[var(--theme-input-border-focus)] focus:ring-2 focus:ring-[var(--theme-accent-light)]"
                 />
               </div>
@@ -424,11 +424,13 @@ export default function EditSitePage() {
                         onClick={() =>
                           setFormData({
                             ...formData,
-                            tab_type: formData.tab_type === type ? '' : type,
+                            tab_type: formData.tab_type.includes(type)
+                              ? formData.tab_type.filter((t) => t !== type)
+                              : [...formData.tab_type, type],
                           })
                         }
                         className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                          formData.tab_type === type
+                          formData.tab_type.includes(type)
                             ? 'bg-[var(--theme-accent)] text-[var(--theme-bg)]'
                             : 'bg-[var(--theme-surface)] text-[var(--theme-text-secondary)] border border-[var(--theme-border)] hover:border-[var(--theme-text-muted)]'
                         }`}

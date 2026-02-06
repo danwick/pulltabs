@@ -50,12 +50,12 @@ const THEME_COLORS = {
   },
 };
 
-// Crown icon SVG for premium markers
-const CROWN_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M5 16L3 5l5 4.5L12 3l4 6.5L21 5l-2 11H5zm0 2h14v2H5v-2z" fill="white"/></svg>`;
+// Crown icon SVG for premium markers — purple circle with yellow crown
+const CROWN_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36"><circle cx="18" cy="18" r="18" fill="#4C1D95"/><path d="M11 22.5L9.5 13l4.5 4L18 11l4 6 4.5-4L25 22.5H11zm0 1.5h14v1.5H11v-1.5z" fill="#FFD700"/></svg>`;
 
 // Load crown icon and add symbol layer to map
 function addCrownLayer(mapInstance: mapboxgl.Map) {
-  const img = new Image(24, 24);
+  const img = new Image(36, 36);
   img.onload = () => {
     if (!mapInstance.hasImage('crown-icon')) {
       mapInstance.addImage('crown-icon', img);
@@ -68,7 +68,7 @@ function addCrownLayer(mapInstance: mapboxgl.Map) {
         filter: ['all', ['!', ['has', 'point_count']], ['==', ['get', 'listing_status'], 'premium']],
         layout: {
           'icon-image': 'crown-icon',
-          'icon-size': 0.55,
+          'icon-size': 1.1,
           'icon-allow-overlap': true,
         },
       });

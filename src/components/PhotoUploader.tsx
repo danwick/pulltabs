@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { upload } from '@vercel/blob/client';
+import heic2any from 'heic2any';
 import { Camera, X, Upload, Loader2, AlertCircle, ImagePlus } from 'lucide-react';
 
 interface PhotoUploaderProps {
@@ -29,10 +30,12 @@ export default function PhotoUploader({
     const file = files[0];
     setError(null);
 
-    // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-    if (!allowedTypes.includes(file.type)) {
-      setError('Invalid file type. Use JPEG, PNG, WebP, or GIF.');
+    // Validate file type — also check extension for HEIC (some devices don't set MIME type)
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'];
+    const fileExt = file.name.split('.').pop()?.toLowerCase();
+    const isHeicByExt = fileExt === 'heic' || fileExt === 'heif';
+    if (!allowedTypes.includes(file.type) && !isHeicByExt) {
+      setError('Invalid file type. Use JPEG, PNG, WebP, GIF, or HEIC.');
       return;
     }
 
@@ -51,11 +54,26 @@ export default function PhotoUploader({
     setIsUploading(true);
 
     try {
+      // Convert HEIC/HEIF to JPEG — browsers can't display HEIC natively
+      let uploadFile: File | Blob = file;
+      let ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const isHeic = file.type === 'image/heic' || file.type === 'image/heif'
+        || ext === 'heic' || ext === 'heif';
+
+      if (isHeic) {
+        const jpegBlob = await heic2any({
+          blob: file,
+          toType: 'image/jpeg',
+          quality: 0.85,
+        });
+        uploadFile = Array.isArray(jpegBlob) ? jpegBlob[0] : jpegBlob;
+        ext = 'jpg';
+      }
+
       // Upload directly to Vercel Blob (bypasses serverless function body size limit)
-      const ext = file.name.split('.').pop() || 'jpg';
       const pathname = `sites/${siteId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
 
-      const blob = await upload(pathname, file, {
+      const blob = await upload(pathname, uploadFile, {
         access: 'public',
         handleUploadUrl: '/api/upload',
       });
@@ -172,7 +190,7 @@ export default function PhotoUploader({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp,image/gif"
+        accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,.heic,.heif"
         onChange={handleFileSelect}
         className="hidden"
       />
@@ -188,7 +206,7 @@ export default function PhotoUploader({
       {/* Help text */}
       <p className="text-xs text-[var(--theme-text-muted)]">
         <Camera className="w-3 h-3 inline mr-1" />
-        Upload up to {maxPhotos} photos (JPEG, PNG, WebP, GIF). Max 20MB each.
+        Upload up to {maxPhotos} photos (JPEG, PNG, WebP, GIF, HEIC). Max 20MB each.
         Tip: Show your pull-tab booth, bar area, and any promotional displays.
       </p>
     </div>

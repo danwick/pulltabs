@@ -9,7 +9,9 @@
     "lint": "eslint",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "chromatic": "chromatic"
+    "chromatic": "chromatic",
+    "test:api": "vitest run --project api",
+    "test:api:watch": "vitest --project api"
   },
   "dependencies": {
     "@auth/core": "^0.34.3",
@@ -17,6 +19,7 @@
     "@types/mapbox-gl": "^3.4.1",
     "@vercel/blob": "^2.1.0",
     "bcryptjs": "^3.0.3",
+    "heic2any": "^0.0.4",
     "lucide-react": "^0.562.0",
     "mapbox-gl": "^3.17.0",
     "next": "16.1.1",

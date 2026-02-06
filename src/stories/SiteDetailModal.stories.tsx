@@ -43,7 +43,7 @@ const premiumSite: Site = {
   fiscal_year: '2025',
   is_active: true,
   listing_status: 'premium',
-  tab_type: 'booth',
+  tab_type: ['booth'],
   pull_tab_prices: [5, 3, 2, 1],
   etab_system: 'pilot',
   website: 'www.luckyslounge.com',
@@ -168,18 +168,22 @@ function SiteDetailContent({ site, showCloseButton, isJackpot = true }: SiteDeta
         )}
 
         {/* Operator Details */}
-        {(site.tab_type || site.pull_tab_prices?.length || site.etab_system) && (
+        {(site.tab_type?.length || site.pull_tab_prices?.length || site.etab_system) && (
           <>
-            {site.tab_type && (
+            {site.tab_type && site.tab_type.length > 0 && (
               <div>
                 <h3 className={`text-sm font-semibold mb-2 ${isJackpot ? 'text-gray-300' : 'text-gray-700'}`}>
                   Seller Type
                 </h3>
-                <span className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                  isJackpot ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-500 text-white'
-                }`}>
-                  {TAB_TYPE_LABELS[site.tab_type as TabType]}
-                </span>
+                <div className="flex flex-wrap gap-2">
+                  {site.tab_type.map((type) => (
+                    <span key={type} className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                      isJackpot ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-500 text-white'
+                    }`}>
+                      {TAB_TYPE_LABELS[type as TabType]}
+                    </span>
+                  ))}
+                </div>
               </div>
             )}
 

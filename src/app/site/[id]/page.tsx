@@ -31,7 +31,7 @@ export default async function SitePage({ params }: SitePageProps) {
   }
 
   // Check if site has operator-provided details
-  const hasPullTabDetails = site.tab_type || (site.pull_tab_prices && site.pull_tab_prices.length > 0);
+  const hasPullTabDetails = site.tab_type?.length || (site.pull_tab_prices && site.pull_tab_prices.length > 0);
   const hasEtabDetails = site.etab_system;
   const hasPhotos = site.photos && site.photos.length > 0;
   const hasBarHours = site.bar_hours && Object.values(site.bar_hours).some(day => day !== null);
@@ -123,15 +123,19 @@ export default async function SitePage({ params }: SitePageProps) {
         )}
 
         {/* Tab Type - Seller Type (operator-provided) */}
-        {site.tab_type && (
+        {site.tab_type && site.tab_type.length > 0 && (
           <div className="bg-white rounded-lg shadow-sm border p-4">
             <div className="flex items-center gap-2 mb-3">
               <Store className="w-5 h-5 text-gray-400" />
               <h2 className="font-semibold text-gray-900">Seller Type</h2>
             </div>
-            <span className="inline-flex px-3 py-1.5 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-              {TAB_TYPE_LABELS[site.tab_type as TabType]}
-            </span>
+            <div className="flex flex-wrap gap-2">
+              {site.tab_type.map((type) => (
+                <span key={type} className="inline-flex px-3 py-1.5 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                  {TAB_TYPE_LABELS[type as TabType]}
+                </span>
+              ))}
+            </div>
           </div>
         )}
 

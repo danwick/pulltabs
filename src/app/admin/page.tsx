@@ -29,7 +29,7 @@ interface Site {
   listing_status: string;
   phone: string | null;
   website: string | null;
-  tab_type: string | null;
+  tab_type: string[] | null;
   pull_tab_prices: number[] | null;
   etab_system: string | null;
 }
@@ -209,10 +209,10 @@ export default function AdminDashboard() {
                       <MapPin className="w-3 h-3" />
                       {site.city}, {site.state}
                     </span>
-                    {site.tab_type && (
+                    {site.tab_type && site.tab_type.length > 0 && (
                       <span className="flex items-center gap-1">
                         <Store className="w-3 h-3" />
-                        {site.tab_type === 'booth' ? 'Booth' : site.tab_type === 'behind_bar' ? 'Bar' : 'Machine'}
+                        {site.tab_type.map(t => t === 'booth' ? 'Booth' : t === 'behind_bar' ? 'Bar' : 'Machine').join(', ')}
                       </span>
                     )}
                     {site.pull_tab_prices && site.pull_tab_prices.length > 0 && (

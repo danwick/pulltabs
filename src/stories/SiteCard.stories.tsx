@@ -30,7 +30,7 @@ const premiumSite: Site = {
   site_id: 2,
   site_name: "Lucky's Gaming Lounge",
   listing_status: 'premium',
-  tab_type: 'booth',
+  tab_type: ['booth'],
   pull_tab_prices: [5, 3, 2, 1],
   etab_system: 'pilot',
   hours: {
@@ -49,7 +49,7 @@ const claimedSite: Site = {
   site_id: 3,
   site_name: 'The Corner Pub',
   listing_status: 'standard',
-  tab_type: 'behind_bar',
+  tab_type: ['behind_bar'],
   pull_tab_prices: [2, 1],
 };
 

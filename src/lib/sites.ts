@@ -1,7 +1,9 @@
-import { Site, SiteFilters, TabType, EtabSystem, PullTabPrice } from '@/types/site';
+import { Site, SiteFilters, SiteHours, TabType, EtabSystem, PullTabPrice } from '@/types/site';
 import { sql } from './db';
 import path from 'path';
 import fs from 'fs';
+
+const DAY_NAMES = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const;
 
 // Format gambling type from snake_case to display name
 function formatGamblingType(type: string): string {
@@ -44,7 +46,7 @@ interface SiteRow {
   listing_status: string | null;
   is_active: boolean | null;
   // New fields from Jay/Tim feedback
-  tab_type: string | null;
+  tab_type: string[] | null;
   pull_tab_prices: number[] | null;
   etab_system: string | null;
   photos: string[] | null;
@@ -75,7 +77,7 @@ function rowToSite(row: SiteRow): Site {
     listing_status: (row.listing_status as 'unclaimed' | 'standard' | 'premium') || 'unclaimed',
     is_active: row.is_active ?? true,
     // New fields
-    tab_type: row.tab_type as TabType | null,
+    tab_type: row.tab_type as TabType[] | null,
     pull_tab_prices: row.pull_tab_prices as PullTabPrice[] | undefined,
     etab_system: row.etab_system as EtabSystem | null,
   };
@@ -189,8 +191,8 @@ function applyNonGeoFilters(sites: Site[], filters?: SiteFilters): Site[] {
   // Tab types filter (multi-select) - match if site has ANY of the selected types
   if (filters.tab_types && filters.tab_types.length > 0) {
     sites = sites.filter((s) => {
-      if (!s.tab_type) return false;
-      return filters.tab_types!.includes(s.tab_type);
+      if (!s.tab_type || s.tab_type.length === 0) return false;
+      return filters.tab_types!.some((t) => s.tab_type!.includes(t));
     });
   }
 
@@ -210,6 +212,30 @@ function applyNonGeoFilters(sites: Site[], filters?: SiteFilters): Site[] {
   return sites;
 }
 
+async function loadSiteHours(siteId: number): Promise<SiteHours | null> {
+  if (!sql) return null;
+
+  const hoursRows = await sql`
+    SELECT day_of_week, open_time, close_time
+    FROM site_hours
+    WHERE site_id = ${siteId}
+    ORDER BY day_of_week
+  `;
+
+  const hours: SiteHours = {};
+  for (const row of hoursRows) {
+    const dayName = DAY_NAMES[row.day_of_week];
+    if (dayName && row.open_time && row.close_time) {
+      hours[dayName] = {
+        open: row.open_time.slice(0, 5),
+        close: row.close_time.slice(0, 5),
+      };
+    }
+  }
+
+  return Object.keys(hours).length > 0 ? hours : null;
+}
+
 async function getSiteByIdFromDB(id: number): Promise<Site | null> {
   if (!sql) return null;
 
@@ -218,7 +244,10 @@ async function getSiteByIdFromDB(id: number): Promise<Site | null> {
   ` as SiteRow[];
 
   if (rows.length === 0) return null;
-  return rowToSite(rows[0]);
+
+  const site = rowToSite(rows[0]);
+  site.hours = await loadSiteHours(id);
+  return site;
 }
 
 async function getCitiesFromDB(): Promise<string[]> {
@@ -366,8 +395,8 @@ async function getSitesFromJSON(filters?: SiteFilters): Promise<Site[]> {
   // New filters from Jay/Tim feedback
   if (filters?.tab_types && filters.tab_types.length > 0) {
     sites = sites.filter((s) => {
-      if (!s.tab_type) return false;
-      return filters.tab_types!.includes(s.tab_type);
+      if (!s.tab_type || s.tab_type.length === 0) return false;
+      return filters.tab_types!.some((t) => s.tab_type!.includes(t));
     });
   }
 

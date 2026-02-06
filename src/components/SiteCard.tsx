@@ -16,7 +16,7 @@ export default function SiteCard({ site, isSelected, onClick }: SiteCardProps) {
   const { isJackpot } = useTheme();
 
   // Check for operator-provided details
-  const hasDetails = site.tab_type || site.pull_tab_prices?.length || site.etab_system || site.hours;
+  const hasDetails = site.tab_type?.length || site.pull_tab_prices?.length || site.etab_system || site.hours;
 
   return (
     <div
@@ -66,13 +66,13 @@ export default function SiteCard({ site, isSelected, onClick }: SiteCardProps) {
           )}
 
           {/* Tab Type */}
-          {site.tab_type && (
-            <span className={`inline-block px-2 py-0.5 text-xs rounded-full mr-1 ${
+          {site.tab_type?.map((type) => (
+            <span key={type} className={`inline-block px-2 py-0.5 text-xs rounded-full mr-1 ${
               isJackpot ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-700'
             }`}>
-              {TAB_TYPE_LABELS[site.tab_type as TabType]}
+              {TAB_TYPE_LABELS[type as TabType]}
             </span>
-          )}
+          ))}
 
           {/* Pull-Tab Prices */}
           {site.pull_tab_prices && site.pull_tab_prices.length > 0 && (

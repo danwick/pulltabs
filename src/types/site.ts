@@ -27,7 +27,7 @@ export interface Site {
   listing_status: 'unclaimed' | 'standard' | 'premium';
   is_active: boolean;
   // New fields from Jay/Tim feedback
-  tab_type?: TabType | null;
+  tab_type?: TabType[] | null;
   pull_tab_prices?: PullTabPrice[];
   etab_system?: EtabSystem | null;
 }

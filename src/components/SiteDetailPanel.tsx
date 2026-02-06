@@ -55,7 +55,7 @@ export default function SiteDetailPanel({ site, onClose }: SiteDetailPanelProps)
               <span
                 key={type}
                 className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                  site.tab_type === type
+                  site.tab_type?.includes(type as TabType)
                     ? 'bg-blue-500 text-white'
                     : 'bg-gray-100 text-gray-500'
                 }`}
