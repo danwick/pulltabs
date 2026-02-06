@@ -82,8 +82,9 @@ function HomeContent() {
       params.set('lat', userLocation.lat.toString());
       params.set('lng', userLocation.lng.toString());
       params.set('distance', filters.distance.toString());
-    } else {
-      // Use viewport bounds for dynamic loading
+    } else if (!filters.search) {
+      // Use viewport bounds for dynamic loading — but skip bounds when
+      // searching so results aren't limited to the current map view
       params.set('north', mapBounds.north.toString());
       params.set('south', mapBounds.south.toString());
       params.set('east', mapBounds.east.toString());
