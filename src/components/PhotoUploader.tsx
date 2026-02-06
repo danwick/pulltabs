@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { upload } from '@vercel/blob/client';
 import { Camera, X, Upload, Loader2, AlertCircle, ImagePlus } from 'lucide-react';
 
 interface PhotoUploaderProps {
@@ -50,22 +51,16 @@ export default function PhotoUploader({
     setIsUploading(true);
 
     try {
-      // Upload file
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('siteId', siteId.toString());
+      // Upload directly to Vercel Blob (bypasses serverless function body size limit)
+      const ext = file.name.split('.').pop() || 'jpg';
+      const pathname = `sites/${siteId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
 
-      const uploadRes = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
+      const blob = await upload(pathname, file, {
+        access: 'public',
+        handleUploadUrl: '/api/upload',
       });
 
-      if (!uploadRes.ok) {
-        const data = await uploadRes.json();
-        throw new Error(data.error || 'Upload failed');
-      }
-
-      const { url } = await uploadRes.json();
+      const url = blob.url;
 
       // Add to site photos
       const photosRes = await fetch(`/api/operator/sites/${siteId}/photos`, {
