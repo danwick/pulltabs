@@ -61,6 +61,9 @@ export async function POST(request: NextRequest) {
     // Check if user is a super admin (can claim any site, even if already claimed)
     const isSuperAdmin = session.user.role === 'super_admin';
 
+    // Super admin claims are always premium
+    const effectiveTier = isSuperAdmin ? 'premium' : tier;
+
     // Check if user already has a claim for this site (super admins bypass this)
     if (!isSuperAdmin) {
       const existingClaims = await sql`
@@ -120,7 +123,7 @@ export async function POST(request: NextRequest) {
         ${verificationMethod},
         ${gamblingManagerMatch},
         ${notes || null},
-        ${tier}
+        ${effectiveTier}
       )
       RETURNING id, status, tier
     `;
@@ -131,7 +134,7 @@ export async function POST(request: NextRequest) {
     if (shouldAutoApprove) {
       await sql`
         UPDATE sites
-        SET listing_status = ${tier}
+        SET listing_status = ${effectiveTier}
         WHERE id = ${siteId}
       `;
     }

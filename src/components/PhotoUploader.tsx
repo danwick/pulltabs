@@ -35,9 +35,9 @@ export default function PhotoUploader({
       return;
     }
 
-    // Validate file size (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setError('File too large. Maximum size is 5MB.');
+    // Validate file size (20MB)
+    if (file.size > 20 * 1024 * 1024) {
+      setError('File too large. Maximum size is 20MB.');
       return;
     }
 
@@ -193,7 +193,7 @@ export default function PhotoUploader({
       {/* Help text */}
       <p className="text-xs text-[var(--theme-text-muted)]">
         <Camera className="w-3 h-3 inline mr-1" />
-        Upload up to {maxPhotos} photos (JPEG, PNG, WebP, GIF). Max 5MB each.
+        Upload up to {maxPhotos} photos (JPEG, PNG, WebP, GIF). Max 20MB each.
         Tip: Show your pull-tab booth, bar area, and any promotional displays.
       </p>
     </div>

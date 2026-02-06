@@ -50,6 +50,33 @@ const THEME_COLORS = {
   },
 };
 
+// Crown icon SVG for premium markers
+const CROWN_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M5 16L3 5l5 4.5L12 3l4 6.5L21 5l-2 11H5zm0 2h14v2H5v-2z" fill="white"/></svg>`;
+
+// Load crown icon and add symbol layer to map
+function addCrownLayer(mapInstance: mapboxgl.Map) {
+  const img = new Image(24, 24);
+  img.onload = () => {
+    if (!mapInstance.hasImage('crown-icon')) {
+      mapInstance.addImage('crown-icon', img);
+    }
+    if (!mapInstance.getLayer('unclustered-point-premium-crown')) {
+      mapInstance.addLayer({
+        id: 'unclustered-point-premium-crown',
+        type: 'symbol',
+        source: 'sites',
+        filter: ['all', ['!', ['has', 'point_count']], ['==', ['get', 'listing_status'], 'premium']],
+        layout: {
+          'icon-image': 'crown-icon',
+          'icon-size': 0.55,
+          'icon-allow-overlap': true,
+        },
+      });
+    }
+  };
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(CROWN_SVG);
+}
+
 // Convert sites to GeoJSON for Mapbox clustering
 function sitesToGeoJSON(sites: Site[]): GeoJSON.FeatureCollection {
   return {
@@ -250,6 +277,9 @@ function MapComponent({
         },
       });
 
+      // Crown icon on premium markers
+      addCrownLayer(map.current);
+
       // Click on cluster to zoom in
       map.current.on('click', 'clusters', (e) => {
         if (!map.current) return;
@@ -288,6 +318,7 @@ function MapComponent({
 
       map.current.on('click', 'unclustered-point-basic', handlePointClick);
       map.current.on('click', 'unclustered-point-premium', handlePointClick);
+      map.current.on('click', 'unclustered-point-premium-crown', handlePointClick);
 
       // Change cursor on hover
       map.current.on('mouseenter', 'clusters', () => {
@@ -306,6 +337,12 @@ function MapComponent({
         if (map.current) map.current.getCanvas().style.cursor = 'pointer';
       });
       map.current.on('mouseleave', 'unclustered-point-premium', () => {
+        if (map.current) map.current.getCanvas().style.cursor = '';
+      });
+      map.current.on('mouseenter', 'unclustered-point-premium-crown', () => {
+        if (map.current) map.current.getCanvas().style.cursor = 'pointer';
+      });
+      map.current.on('mouseleave', 'unclustered-point-premium-crown', () => {
         if (map.current) map.current.getCanvas().style.cursor = '';
       });
 
@@ -440,6 +477,9 @@ function MapComponent({
         },
       });
 
+      // Re-add crown icon on premium markers
+      addCrownLayer(map.current);
+
       // Restore view
       map.current.setCenter(currentCenter);
       map.current.setZoom(currentZoom);
@@ -490,6 +530,16 @@ function MapComponent({
       0, // hide glow when selected
       0.4, // show glow when not selected
     ]);
+
+    // Hide/show crown for premium when selected
+    if (map.current.getLayer('unclustered-point-premium-crown')) {
+      map.current.setPaintProperty('unclustered-point-premium-crown', 'icon-opacity', [
+        'case',
+        ['==', ['get', 'id'], selectedSiteId || -1],
+        0,
+        1,
+      ]);
+    }
   }, [selectedSiteId, mapLoaded, isJackpot]);
 
   // Fly to selected site (only when selection changes, not on every sites update)
