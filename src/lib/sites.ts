@@ -216,7 +216,7 @@ async function loadSiteHours(siteId: number): Promise<SiteHours | null> {
   if (!sql) return null;
 
   const hoursRows = await sql`
-    SELECT day_of_week, open_time, close_time
+    SELECT day_of_week, open_time, close_time, last_call
     FROM site_hours
     WHERE site_id = ${siteId}
     ORDER BY day_of_week
@@ -229,6 +229,7 @@ async function loadSiteHours(siteId: number): Promise<SiteHours | null> {
       hours[dayName] = {
         open: row.open_time.slice(0, 5),
         close: row.close_time.slice(0, 5),
+        ...(row.last_call ? { last_call: true } : {}),
       };
     }
   }

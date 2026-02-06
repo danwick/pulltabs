@@ -149,7 +149,7 @@ export default function EditSitePage() {
     }
   };
 
-  const handleHoursChange = (day: DayOfWeek, field: 'open' | 'close', value: string) => {
+  const handleHoursChange = (day: DayOfWeek, field: 'open' | 'close' | 'last_call', value: string | boolean) => {
     setFormData((prev) => ({
       ...prev,
       hours: {
@@ -353,38 +353,69 @@ export default function EditSitePage() {
                 <Sparkles className="w-4 h-4 text-yellow-500" />
               </h2>
               <div className="space-y-3">
-                {DAYS_OF_WEEK.map((day) => (
-                  <div
-                    key={day}
-                    className="flex items-center gap-3 p-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-lg"
-                  >
-                    <span className="w-24 text-sm font-medium text-[var(--theme-text-secondary)] capitalize">
-                      {day}
-                    </span>
-                    <div className="flex-1 flex items-center gap-2">
-                      <input
-                        type="time"
-                        value={formData.hours[day]?.open || ''}
-                        onChange={(e) => handleHoursChange(day, 'open', e.target.value)}
-                        className="flex-1 px-3 py-1.5 bg-[var(--theme-input-bg)] border border-[var(--theme-input-border)] rounded text-sm text-[var(--theme-text-primary)] focus:outline-none focus:border-[var(--theme-input-border-focus)]"
-                      />
-                      <span className="text-[var(--theme-text-muted)]">to</span>
-                      <input
-                        type="time"
-                        value={formData.hours[day]?.close || ''}
-                        onChange={(e) => handleHoursChange(day, 'close', e.target.value)}
-                        className="flex-1 px-3 py-1.5 bg-[var(--theme-input-bg)] border border-[var(--theme-input-border)] rounded text-sm text-[var(--theme-text-primary)] focus:outline-none focus:border-[var(--theme-input-border-focus)]"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleHoursClear(day)}
-                      className="text-xs text-[var(--theme-text-muted)] hover:text-[var(--theme-error)] transition-colors"
+                {DAYS_OF_WEEK.map((day) => {
+                  const dayHours = formData.hours[day];
+                  const isLastCall = dayHours?.last_call || false;
+                  return (
+                    <div
+                      key={day}
+                      className="flex items-center gap-3 p-3 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-lg"
                     >
-                      Closed
-                    </button>
-                  </div>
-                ))}
+                      <span className="w-24 text-sm font-medium text-[var(--theme-text-secondary)] capitalize">
+                        {day}
+                      </span>
+                      <div className="flex-1 flex items-center gap-2">
+                        <input
+                          type="time"
+                          value={dayHours?.open || ''}
+                          onChange={(e) => handleHoursChange(day, 'open', e.target.value)}
+                          className="flex-1 px-3 py-1.5 bg-[var(--theme-input-bg)] border border-[var(--theme-input-border)] rounded text-sm text-[var(--theme-text-primary)] focus:outline-none focus:border-[var(--theme-input-border-focus)]"
+                        />
+                        <span className="text-[var(--theme-text-muted)]">to</span>
+                        {isLastCall ? (
+                          <span className="flex-1 px-3 py-1.5 text-sm font-medium text-[var(--theme-accent)]">
+                            Last Call
+                          </span>
+                        ) : (
+                          <input
+                            type="time"
+                            value={dayHours?.close || ''}
+                            onChange={(e) => handleHoursChange(day, 'close', e.target.value)}
+                            className="flex-1 px-3 py-1.5 bg-[var(--theme-input-bg)] border border-[var(--theme-input-border)] rounded text-sm text-[var(--theme-text-primary)] focus:outline-none focus:border-[var(--theme-input-border-focus)]"
+                          />
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (isLastCall) {
+                            handleHoursChange(day, 'last_call', false);
+                          } else {
+                            // Set last_call and auto-fill close if empty
+                            handleHoursChange(day, 'last_call', true);
+                            if (!dayHours?.close) {
+                              handleHoursChange(day, 'close', '23:59');
+                            }
+                          }
+                        }}
+                        className={`text-xs px-2 py-1 rounded transition-colors ${
+                          isLastCall
+                            ? 'bg-[var(--theme-accent)] text-[var(--theme-bg)] font-medium'
+                            : 'text-[var(--theme-text-muted)] hover:text-[var(--theme-accent)]'
+                        }`}
+                      >
+                        Last Call
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleHoursClear(day)}
+                        className="text-xs text-[var(--theme-text-muted)] hover:text-[var(--theme-error)] transition-colors"
+                      >
+                        Closed
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             </section>
           ) : (

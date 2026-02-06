@@ -260,7 +260,7 @@ function HoursGrid({ hours }: { hours: SiteHours | null | undefined }) {
           <div key={day} className="flex justify-between">
             <span className="text-gray-500 capitalize">{day.slice(0, 3)}</span>
             <span className="text-gray-900">
-              {dayHours ? `${dayHours.open} - ${dayHours.close}` : 'Closed'}
+              {dayHours ? `${dayHours.open} - ${dayHours.last_call ? 'Last Call' : dayHours.close}` : 'Closed'}
             </span>
           </div>
         );

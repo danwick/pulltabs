@@ -75,20 +75,21 @@ export async function GET(
 
     // Fetch hours from site_hours table
     const hoursRows = await sql`
-      SELECT day_of_week, open_time, close_time
+      SELECT day_of_week, open_time, close_time, last_call
       FROM site_hours
       WHERE site_id = ${siteId}
       ORDER BY day_of_week
     `;
 
     // Transform DB rows into SiteHours object
-    const hours: Record<string, { open: string; close: string }> = {};
+    const hours: Record<string, { open: string; close: string; last_call?: boolean }> = {};
     for (const row of hoursRows) {
       const dayName = DAY_NAMES[row.day_of_week];
       if (dayName && row.open_time && row.close_time) {
         hours[dayName] = {
           open: row.open_time.slice(0, 5), // "HH:MM:SS" -> "HH:MM"
           close: row.close_time.slice(0, 5),
+          ...(row.last_call ? { last_call: true } : {}),
         };
       }
     }
@@ -170,12 +171,12 @@ export async function PATCH(
       for (const [dayName, times] of Object.entries(hours)) {
         const dayIndex = DAY_NAMES.indexOf(dayName as typeof DAY_NAMES[number]);
         if (dayIndex === -1) continue;
-        const t = times as { open?: string; close?: string } | null;
+        const t = times as { open?: string; close?: string; last_call?: boolean } | null;
         if (!t?.open || !t?.close) continue;
 
         await sql`
-          INSERT INTO site_hours (site_id, day_of_week, open_time, close_time)
-          VALUES (${siteId}, ${dayIndex}, ${t.open}, ${t.close})
+          INSERT INTO site_hours (site_id, day_of_week, open_time, close_time, last_call)
+          VALUES (${siteId}, ${dayIndex}, ${t.open}, ${t.close}, ${t.last_call || false})
         `;
       }
     }

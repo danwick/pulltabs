@@ -370,7 +370,7 @@ function HoursDisplay({ hours, isJackpot }: { hours: SiteHours | null | undefine
         if (!dayHours) return null;
         return (
           <p key={key}>
-            {label}: {dayHours.open} - {dayHours.close}
+            {label}: {dayHours.open} - {dayHours.last_call ? 'Last Call' : dayHours.close}
           </p>
         );
       })}

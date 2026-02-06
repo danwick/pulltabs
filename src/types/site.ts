@@ -32,14 +32,20 @@ export interface Site {
   etab_system?: EtabSystem | null;
 }
 
+export interface DayHours {
+  open: string;
+  close: string;
+  last_call?: boolean;
+}
+
 export interface SiteHours {
-  monday?: { open: string; close: string } | null;
-  tuesday?: { open: string; close: string } | null;
-  wednesday?: { open: string; close: string } | null;
-  thursday?: { open: string; close: string } | null;
-  friday?: { open: string; close: string } | null;
-  saturday?: { open: string; close: string } | null;
-  sunday?: { open: string; close: string } | null;
+  monday?: DayHours | null;
+  tuesday?: DayHours | null;
+  wednesday?: DayHours | null;
+  thursday?: DayHours | null;
+  friday?: DayHours | null;
+  saturday?: DayHours | null;
+  sunday?: DayHours | null;
 }
 
 export interface SiteFilters {
